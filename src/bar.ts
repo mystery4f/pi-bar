@@ -251,9 +251,10 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         collapse: 2,
       }),
       // How much of the tree moved, before how many lines moved: a file count is what turns
-      // "+4 -880" from a scare into a sentence.
+      // "+4 -880" from a scare into a sentence. The label reads `Edits • 12 files • +98 -7`,
+      // the numbers as plain coloured text, so the group stays quieter than the branch above it.
       ...keep(config.segments.changes && changes.files > 0, {
-        text: `${changes.files} file${changes.files === 1 ? '' : 's'}`,
+        text: `Edits \u2022 ${changes.files} file${changes.files === 1 ? '' : 's'} \u2022`,
         fg: PALETTE.inkText,
         flatFg: PALETTE.dim,
         bg: PALETTE.activity,
@@ -265,10 +266,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         text: `+${changes.insertions}`,
         fg: PALETTE.inkGreen,
         flatFg: PALETTE.inkGreen,
-        bg: PALETTE.addedBg,
-        flatChip: true,
-        // Right behind the branch: the counts belong to the tree the branch names, not to a
-        // separate group, so the chips start where the branch ends.
+        bg: PALETTE.activity,
         join: true,
         collapse: 3,
       }),
@@ -276,9 +274,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         text: `-${changes.deletions}`,
         fg: PALETTE.inkRed,
         flatFg: PALETTE.inkRed,
-        bg: PALETTE.removedBg,
-        flatChip: true,
-        // Glued to whatever the row shows before it, so the pair reads as one block.
+        bg: PALETTE.activity,
         join: true,
         collapse: 3,
       }),

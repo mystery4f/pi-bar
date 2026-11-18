@@ -38,10 +38,6 @@ export const PALETTE = {
   /** The clean branch in a quiet row: slate instead of green, so the row stops competing. */
   quietClean: hex('#3b4261'),
   gitDirty: hex('#a17a00'),
-  /** Chip tint behind an added-line count: green, but not a filled cell. */
-  addedBg: hex('#123420'),
-  /** Chip tint behind a removed-line count. */
-  removedBg: hex('#3a1d26'),
   activity: hex('#313244'),
   activityFg: hex('#2dd4bf'),
   ok: hex('#006b1d'),
