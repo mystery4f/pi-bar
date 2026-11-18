@@ -68,6 +68,6 @@ describe('renderLine block', () => {
   it('opens and closes with the powerline caps', () => {
     const line = renderLine([segment('one')], 80, 'block');
 
-    expect(stripAnsi(line)).toBe('\u258C one \u2590');
+    expect(stripAnsi(line)).toBe('\uE0BA one \uE0BC');
   });
 });

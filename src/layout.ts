@@ -12,6 +12,7 @@ import {
   RESET,
   type RGB,
   SEPARATOR_LEADING,
+  SEPARATOR_MIDDLE,
   SEPARATOR_TRAILING,
   stripAnsi,
 } from './palette.ts';
@@ -68,20 +69,12 @@ const segmentText = (segment: Segment, color: RGB): string =>
 const blockLine = (list: readonly Segment[]): string => {
   const first = list[0];
   if (first === undefined) return '';
-
-  // Half blocks cap the row instead of the tall powerline glyphs, which some terminal
-  // fonts draw above the line box and so push the whole row taller.
   let out = fg(first.bg) + SEPARATOR_LEADING;
   for (const [index, segment] of list.entries()) {
     out += `${bg(segment.bg)} ${segmentText(segment, segment.fg)} `;
     const next = list[index + 1];
-    // Neighbouring blocks of the same colour would merge, so they keep a thin divider.
-    out +=
-      next === undefined
-        ? `${RESET}${fg(segment.bg)}${SEPARATOR_TRAILING}`
-        : `${bg(segment.bg)}${fg(next.bg)}${next.bg === segment.bg ? FLAT_SEPARATOR : ''}${bg(next.bg)}`;
+    out += next ? fg(segment.bg) + bg(next.bg) + SEPARATOR_MIDDLE : fg(segment.bg) + SEPARATOR_TRAILING;
   }
-
   return out;
 };
 
