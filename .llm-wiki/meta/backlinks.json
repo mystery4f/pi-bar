@@ -1,7 +1,18 @@
 {
-  "sources/collapse-ladder-drop-one-segment-per-step": [],
-  "sources/disable-plugin-ab-before-probing-ui-height": [],
-  "sources/pi-footer-api-what-extensions-can-read": [],
+  "sources/collapse-ladder-drop-one-segment-per-step": [
+    "syntheses/pi-bar-上游实现调研重写基线"
+  ],
+  "sources/disable-plugin-ab-before-probing-ui-height": [
+    "sources/replace-remote-repo-by-delete-and-create",
+    "syntheses/pi-bar-上游实现调研重写基线"
+  ],
+  "sources/github-direct-then-proxy-fallback-switch-fast": [],
+  "sources/pi-footer-api-what-extensions-can-read": [
+    "syntheses/pi-bar-上游实现调研重写基线"
+  ],
+  "sources/replace-remote-repo-by-delete-and-create": [
+    "sources/github-direct-then-proxy-fallback-switch-fast"
+  ],
   "syntheses/pi-bar-上游实现调研重写基线": [
     "sources/collapse-ladder-drop-one-segment-per-step",
     "sources/disable-plugin-ab-before-probing-ui-height",

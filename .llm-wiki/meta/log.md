@@ -17,3 +17,9 @@
 ## [2026-11-18T09:43:41.777Z] retro
 - slug: "disable-plugin-ab-before-probing-ui-height", title: "界面高度问题先用禁用插件做 A/B", category: "debugging"
 
+## [2026-11-18T10:10:24.396Z] retro
+- slug: "replace-remote-repo-by-delete-and-create", title: "用删库重建替换远端仓库历史", category: "devops"
+
+## [2026-11-18T10:10:28.985Z] retro
+- slug: "github-direct-then-proxy-fallback-switch-fast", title: "GitHub 直连会中途失效，失败一次即切代理", category: "devops"
+

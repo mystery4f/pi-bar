@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-11-18T09:43:41.779Z",
+  "last_updated": "2026-11-18T10:10:28.991Z",
   "pages": {
     "sources/collapse-ladder-drop-one-segment-per-step": {
       "type": "source",
@@ -20,12 +20,30 @@
       "created": "2026-11-18",
       "updated": "2026-11-18"
     },
+    "sources/github-direct-then-proxy-fallback-switch-fast": {
+      "type": "source",
+      "title": "GitHub 直连会中途失效，失败一次即切代理",
+      "category": "devops",
+      "status": "insight",
+      "slug": "github-direct-then-proxy-fallback-switch-fast",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
     "sources/pi-footer-api-what-extensions-can-read": {
       "type": "source",
       "title": "pi 1.5.2 footer 扩展可见的数据边界",
       "category": "architecture",
       "status": "insight",
       "slug": "pi-footer-api-what-extensions-can-read",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
+    "sources/replace-remote-repo-by-delete-and-create": {
+      "type": "source",
+      "title": "用删库重建替换远端仓库历史",
+      "category": "devops",
+      "status": "insight",
+      "slug": "replace-remote-repo-by-delete-and-create",
       "created": "2026-11-18",
       "updated": "2026-11-18"
     },
