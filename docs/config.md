@@ -53,7 +53,7 @@ a slate background, so the family matches without the bottom rows competing. `bl
 | `rates` | `in 8k t/s out 160 t/s`, the session's token throughput |
 | `cwd` | the working directory on the second row |
 | `branch` | the git branch on the second row |
-| `changes` | `+12` `-3`, the working-tree line counts beside the branch: a green tint for added lines, a red one for removed, drawn as two touching chips |
+| `changes` | `1 file` `+12` `-3`, the working tree beside the branch: the changed-file count, then the line counts as two touching chips, a green tint for added lines and a red one for removed |
 | `statuses` | extension statuses on the third row |
 | `tokens` | `ctx 125K/1M` on the third row |
 | `providers` | the provider count (only shown above one) |

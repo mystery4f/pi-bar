@@ -76,7 +76,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   let streaming = false;
   const activeTools = new Map<string, string>();
   const rates = createRateMeter({ windowMs: config.rateWindowSeconds * 1000, onSample: logRateSample });
-  let changes: ChangeCounts = { insertions: 0, deletions: 0 };
+  let changes: ChangeCounts = { files: 0, insertions: 0, deletions: 0 };
 
   const requestRender = (): void => {
     tui.requestRender();
@@ -197,6 +197,16 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         flatFg: PALETTE.inkGreen,
         bg: PALETTE.gitClean,
       }),
+      // How much of the tree moved, before how many lines moved: a file count is what turns
+      // "+4 -880" from a scare into a sentence.
+      ...keep(config.segments.changes && changes.files > 0, {
+        text: `${changes.files} file${changes.files === 1 ? '' : 's'}`,
+        fg: PALETTE.inkText,
+        flatFg: PALETTE.dim,
+        bg: PALETTE.activity,
+        join: true,
+        collapse: 3,
+      }),
       // Both halves stay silent at zero: a clean tree says nothing, and one-sided edits half a bar.
       ...keep(config.segments.changes && changes.insertions > 0, {
         text: `+${changes.insertions}`,
@@ -308,7 +318,12 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     },
     updateChanges(cwd) {
       void readChangeCounts(cwd).then((next) => {
-        if (next.insertions === changes.insertions && next.deletions === changes.deletions) return;
+        if (
+          next.files === changes.files &&
+          next.insertions === changes.insertions &&
+          next.deletions === changes.deletions
+        )
+          return;
 
         changes = next;
         requestRender();
