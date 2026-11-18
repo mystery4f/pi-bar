@@ -5,3 +5,7 @@
 {"slug":"disable-plugin-ab-before-probing-ui-height","title":"界面高度问题先用禁用插件做 A/B","category":"debugging","timestamp":"2026-11-18T09:43:41.777Z","kind":"retro"}
 {"slug":"replace-remote-repo-by-delete-and-create","title":"用删库重建替换远端仓库历史","category":"devops","timestamp":"2026-11-18T10:10:24.396Z","kind":"retro"}
 {"slug":"github-direct-then-proxy-fallback-switch-fast","title":"GitHub 直连会中途失效，失败一次即切代理","category":"devops","timestamp":"2026-11-18T10:10:28.985Z","kind":"retro"}
+{"slug":"pi-bar-rate-accounting","title":"pi-bar 速率改为同一分母的会话平均","category":"architecture","timestamp":"2026-11-18T13:10:32.161Z","kind":"retro"}
+{"slug":"pistatusline-speed-metrics","title":"pistatusline 的速率实现口径","category":"reference","timestamp":"2026-11-18T13:10:32.250Z","kind":"retro"}
+{"slug":"token-rate-unit-k-is-kilo","title":"词元速率里的 k 是千，不是 token","category":"convention","timestamp":"2026-11-18T13:10:32.287Z","kind":"retro"}
+{"slug":"pi-extension-request-wall-clock","title":"pi 扩展如何给一次请求计时","category":"debug-case","timestamp":"2026-11-18T13:10:32.324Z","kind":"retro"}

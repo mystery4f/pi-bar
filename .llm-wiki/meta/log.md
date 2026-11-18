@@ -23,3 +23,15 @@
 ## [2026-11-18T10:10:28.985Z] retro
 - slug: "github-direct-then-proxy-fallback-switch-fast", title: "GitHub 直连会中途失效，失败一次即切代理", category: "devops"
 
+## [2026-11-18T13:10:32.161Z] retro
+- slug: "pi-bar-rate-accounting", title: "pi-bar 速率改为同一分母的会话平均", category: "architecture"
+
+## [2026-11-18T13:10:32.250Z] retro
+- slug: "pistatusline-speed-metrics", title: "pistatusline 的速率实现口径", category: "reference"
+
+## [2026-11-18T13:10:32.287Z] retro
+- slug: "token-rate-unit-k-is-kilo", title: "词元速率里的 k 是千，不是 token", category: "convention"
+
+## [2026-11-18T13:10:32.324Z] retro
+- slug: "pi-extension-request-wall-clock", title: "pi 扩展如何给一次请求计时", category: "debug-case"
+

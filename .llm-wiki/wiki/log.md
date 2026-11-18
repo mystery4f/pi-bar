@@ -2,6 +2,10 @@
 
 ## 2026-11-18
 
+- **retro**: {"category":"debug-case","slug":"pi-extension-request-wall-clock","title":"pi 扩展如何给一次请求计时"}
+- **retro**: {"category":"convention","slug":"token-rate-unit-k-is-kilo","title":"词元速率里的 k 是千，不是 token"}
+- **retro**: {"category":"reference","slug":"pistatusline-speed-metrics","title":"pistatusline 的速率实现口径"}
+- **retro**: {"category":"architecture","slug":"pi-bar-rate-accounting","title":"pi-bar 速率改为同一分母的会话平均"}
 - **retro**: {"category":"devops","slug":"github-direct-then-proxy-fallback-switch-fast","title":"GitHub 直连会中途失效，失败一次即切代理"}
 - **retro**: {"category":"devops","slug":"replace-remote-repo-by-delete-and-create","title":"用删库重建替换远端仓库历史"}
 - **retro**: {"category":"debugging","slug":"disable-plugin-ab-before-probing-ui-height","title":"界面高度问题先用禁用插件做 A/B"}

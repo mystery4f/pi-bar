@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-11-18T10:10:28.991Z",
+  "last_updated": "2026-11-18T13:10:33.188Z",
   "pages": {
     "sources/collapse-ladder-drop-one-segment-per-step": {
       "type": "source",
@@ -29,6 +29,24 @@
       "created": "2026-11-18",
       "updated": "2026-11-18"
     },
+    "sources/pi-bar-rate-accounting": {
+      "type": "source",
+      "title": "pi-bar 速率改为同一分母的会话平均",
+      "category": "architecture",
+      "status": "insight",
+      "slug": "pi-bar-rate-accounting",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
+    "sources/pi-extension-request-wall-clock": {
+      "type": "source",
+      "title": "pi 扩展如何给一次请求计时",
+      "category": "debug-case",
+      "status": "insight",
+      "slug": "pi-extension-request-wall-clock",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
     "sources/pi-footer-api-what-extensions-can-read": {
       "type": "source",
       "title": "pi 1.5.2 footer 扩展可见的数据边界",
@@ -38,12 +56,30 @@
       "created": "2026-11-18",
       "updated": "2026-11-18"
     },
+    "sources/pistatusline-speed-metrics": {
+      "type": "source",
+      "title": "pistatusline 的速率实现口径",
+      "category": "reference",
+      "status": "insight",
+      "slug": "pistatusline-speed-metrics",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
     "sources/replace-remote-repo-by-delete-and-create": {
       "type": "source",
       "title": "用删库重建替换远端仓库历史",
       "category": "devops",
       "status": "insight",
       "slug": "replace-remote-repo-by-delete-and-create",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
+    "sources/token-rate-unit-k-is-kilo": {
+      "type": "source",
+      "title": "词元速率里的 k 是千，不是 token",
+      "category": "convention",
+      "status": "insight",
+      "slug": "token-rate-unit-k-is-kilo",
       "created": "2026-11-18",
       "updated": "2026-11-18"
     },
