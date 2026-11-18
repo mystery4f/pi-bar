@@ -32,7 +32,7 @@ const hex = (value: string): RGB => [
 export const PALETTE = {
   text: hex('#cdd6f4'),
   model: hex('#005b95'),
-  thinking: hex('#0f5f5c'),
+  thinking: hex('#005b95'),
   dir: hex('#313244'),
   gitClean: hex('#006b1d'),
   gitDirty: hex('#a17a00'),
