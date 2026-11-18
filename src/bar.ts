@@ -11,8 +11,19 @@ import type { BarConfig, BarStyle } from './config.ts';
 import { type ChangeCounts, readChangeCounts } from './git.ts';
 import { type LineStyle, layout, renderLine, type Segment } from './layout.ts';
 import { PALETTE, stripAnsi } from './palette.ts';
-import { createRateMeter, type TokenUsage } from './rates.ts';
+import { createRateMeter, type RateSample, type TokenUsage } from './rates.ts';
 
+/**
+ * `PI_BAR_DEBUG_RATES=1` prints the raw measurement behind each rate, so an implausible number
+ * can be compared with the window it came from instead of guessed at.
+ */
+const logRateSample = (sample: RateSample): void => {
+  if (process.env.PI_BAR_DEBUG_RATES !== '1') return;
+
+  console.error(
+    `pi-bar rate prompt=${sample.prompt} output=${sample.output} prefillMs=${sample.prefillMs} streamMs=${sample.streamMs}`,
+  );
+};
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
 /** Token counts read at a glance: 1860 -> `1860`, 186000 -> `186K`, 1860000 -> `1.9M`. */
@@ -65,7 +76,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   let spinnerTimer: ReturnType<typeof setInterval> | null = null;
   let streaming = false;
   const activeTools = new Map<string, string>();
-  const rates = createRateMeter();
+  const rates = createRateMeter(logRateSample);
   let changes: ChangeCounts = { insertions: 0, deletions: 0 };
 
   const requestRender = (): void => {
@@ -171,7 +182,8 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         bg: contextBg,
         collapse: 4,
       }),
-      ...(rate === undefined ? [] : [rateSegment('in', rate.input), rateSegment('out', rate.output)]),
+      ...(rate?.input === undefined ? [] : [rateSegment('in', rate.input)]),
+      ...(rate?.output === undefined ? [] : [rateSegment('out', rate.output)]),
     ];
 
     // Line 2 — where the work is happening.

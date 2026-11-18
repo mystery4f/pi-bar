@@ -13,20 +13,38 @@ export interface TokenUsage {
   cacheWrite?: number;
 }
 
+/** Either half may be missing: a phase whose window could not be measured is not reported. */
 export interface RateSnapshot {
-  input: number;
-  output: number;
+  input?: number;
+  output?: number;
 }
 
+/** One request as it was measured, for `PI_BAR_DEBUG_RATES` — the numbers behind the bar. */
+export interface RateSample {
+  prompt: number;
+  output: number;
+  prefillMs: number;
+  streamMs: number;
+}
+
+/**
+ * A window this short cannot carry a throughput number. When a provider answers in one packet the
+ * first and the last token land in the same tick, and dividing by that tick would invent a rate —
+ * the source of the implausible `out` figures a buffered stream produces.
+ */
+const MIN_WINDOW_MS = 50;
+
+const promptOf = (usage: TokenUsage): number => usage.input + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
+
 const perSecond = (tokens: number, milliseconds: number): number | undefined => {
-  if (tokens <= 0 || milliseconds <= 0) return undefined;
+  if (tokens <= 0 || milliseconds < MIN_WINDOW_MS) return undefined;
 
   return Math.round(tokens / (milliseconds / 1000));
 };
 
 /**
- * Rates from one finished assistant message. A phase with no measurable time falls back to the
- * other one, so a provider that reports usage without any streaming still yields a number.
+ * Rates from one finished assistant message. Each half stands on its own window: a phase that was
+ * never timed is left out instead of borrowing the other window's time.
  */
 export const ratesFrom = (
   usage: TokenUsage | undefined,
@@ -35,12 +53,11 @@ export const ratesFrom = (
 ): RateSnapshot | undefined => {
   if (usage === undefined) return undefined;
 
-  const prompt = usage.input + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
-  const input = perSecond(prompt, prefillMs) ?? perSecond(prompt, streamMs);
-  const output = perSecond(usage.output, streamMs) ?? perSecond(usage.output, prefillMs);
+  const input = perSecond(promptOf(usage), prefillMs);
+  const output = perSecond(usage.output, streamMs);
   if (input === undefined && output === undefined) return undefined;
 
-  return { input: input ?? 0, output: output ?? 0 };
+  return { ...(input === undefined ? {} : { input }), ...(output === undefined ? {} : { output }) };
 };
 
 export interface RateMeter {
@@ -53,7 +70,7 @@ export interface RateMeter {
   readonly current: RateSnapshot | undefined;
 }
 
-export const createRateMeter = (): RateMeter => {
+export const createRateMeter = (onSample?: (sample: RateSample) => void): RateMeter => {
   let startedAt: number | null = null;
   let firstTokenAt: number | null = null;
   let last: RateSnapshot | undefined;
@@ -74,11 +91,19 @@ export const createRateMeter = (): RateMeter => {
       if (role !== 'assistant' || startedAt === null) return last;
 
       const start = startedAt;
-      const first = firstTokenAt ?? now;
+      const first = firstTokenAt;
       startedAt = null;
       firstTokenAt = null;
 
-      last = ratesFrom(usage, first - start, now - first) ?? last;
+      // No first token means the request never streamed: the whole wait was prefill, and there is
+      // no generation window to divide by.
+      const prefillMs = (first ?? now) - start;
+      const streamMs = first === null ? 0 : now - first;
+      if (onSample !== undefined && usage !== undefined) {
+        onSample({ prompt: promptOf(usage), output: usage.output, prefillMs, streamMs });
+      }
+
+      last = ratesFrom(usage, prefillMs, streamMs) ?? last;
 
       return last;
     },

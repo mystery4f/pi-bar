@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { createRateMeter, ratesFrom } from '../../src/rates.ts';
+import { createRateMeter, type RateSample, ratesFrom } from '../../src/rates.ts';
 
 it('splits prefill and generation by their own windows', () => {
   // 20K prompt in a 500ms prefill, 400 output tokens over 2s of streaming.
@@ -20,9 +20,15 @@ it('has nothing to report when no time passed', () => {
   expect(ratesFrom({ input: 0, output: 0 }, 0, 0)).toBeUndefined();
 });
 
-it('falls back to the other window when a phase has no time', () => {
-  // No streamed update arrived, so the whole request time serves as both windows.
-  expect(ratesFrom({ input: 1000, output: 50 }, 0, 1000)).toEqual({ input: 1000, output: 50 });
+it('reports only the half whose window was measured', () => {
+  // No streamed update arrived, so there is no generation window and no honest output rate.
+  expect(ratesFrom({ input: 1000, output: 50 }, 1000, 0)).toEqual({ input: 1000 });
+});
+
+it('refuses to divide by a window too short to mean anything', () => {
+  // A provider that answers in one packet puts both tokens in the same tick.
+  expect(ratesFrom({ input: 70_000, output: 553 }, 2400, 4)).toEqual({ input: 29_167 });
+  expect(ratesFrom({ input: 70_000, output: 553 }, 12, 4)).toBeUndefined();
 });
 
 it('measures from message start to the first token, then to the end', () => {
@@ -63,4 +69,14 @@ it('never times a non-assistant message', () => {
   meter.firstToken('toolResult', 100);
 
   expect(meter.end('toolResult', { input: 10, output: 10 }, 500)).toBeUndefined();
+});
+
+it('hands the raw measurement to the debug hook, windows included', () => {
+  const samples: RateSample[] = [];
+  const meter = createRateMeter((sample) => samples.push(sample));
+  meter.begin('assistant', 100);
+  meter.firstToken('assistant', 600);
+  meter.end('assistant', { input: 20_000, output: 400 }, 2600);
+
+  expect(samples).toEqual([{ prompt: 20_000, output: 400, prefillMs: 500, streamMs: 2000 }]);
 });

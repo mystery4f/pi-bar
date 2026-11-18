@@ -125,7 +125,7 @@ it('shows in and out rates on the working row after a request', () => {
   vi.useRealTimers();
 });
 
-it('keeps the last rate visible once the turn is over', () => {
+it('keeps the prefill half when a request never streamed a token', () => {
   vi.useFakeTimers();
   const bar = install();
   const message = { role: 'assistant' };
@@ -135,7 +135,9 @@ it('keeps the last rate visible once the turn is over', () => {
   bar.emit('message_end', { message: { ...message, usage: { input: 20_000, output: 400 } } });
   bar.emit('turn_end');
 
-  expect(bar.plain(150).rows[0] ?? '').toContain('out');
+  // No token arrived mid-request, so there is no generation window to divide the output by.
+  expect(bar.plain(150).rows[0] ?? '').toContain('in 20 k/s');
+  expect(bar.plain(150).rows[0] ?? '').not.toContain('out');
   vi.useRealTimers();
 });
 

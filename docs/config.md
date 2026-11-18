@@ -61,6 +61,12 @@ a slate background, so the family matches without the bottom rows competing. `bl
 A row with no segments left is dropped, so turning off every segment of a row costs
 nothing.
 
+The rates are two independent measurements: the prompt over the wait for the first token, the
+output over the time between the first and the last token. A window shorter than 50ms, or one
+that never opened because the request did not stream, reports nothing for that half rather than
+dividing by it. `PI_BAR_DEBUG_RATES=1` prints the prompt, the output and both windows to stderr
+for each finished request.
+
 `statuses.max_items` — how many extension statuses the third row may show, default `6`.
 The row keeps the leftmost ones and drops the rest.
 
