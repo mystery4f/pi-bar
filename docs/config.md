@@ -24,6 +24,7 @@ rates = true
 elapsed = true
 cwd = true
 branch = true
+upstream = true
 statuses = true
 
 [statuses]
@@ -56,6 +57,7 @@ a slate background, so the family matches without the bottom rows competing. `bl
 | `cwd` | the working directory on the second row |
 | `branch` | the git branch on the second row |
 | `changes` | `1 file` `+12` `-3`, the working tree beside the branch: the changed-file count, then the line counts as two touching chips, a green tint for added lines and a red one for removed |
+| `upstream` | `↑2↓1`, commits not pushed yet and commits the upstream has that the branch lacks; a branch with no upstream shows nothing |
 | `statuses` | extension statuses on the third row |
 | `tokens` | `ctx 125K/1M` on the third row |
 | `providers` | the provider count (only shown above one) |

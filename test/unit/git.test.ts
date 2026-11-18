@@ -3,7 +3,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
-import { parseShortStat, parseStatusCount, readChangeCounts } from '../../src/git.ts';
+import { parseRevList, parseShortStat, parseStatusCount, readChangeCounts, readUpstreamCounts } from '../../src/git.ts';
 
 const repo = (): string => {
   const cwd = mkdtempSync(join(tmpdir(), 'pi-bar-git-'));
@@ -70,4 +70,42 @@ it('counts a file once when it is edited in both the index and the tree', async 
   writeFileSync(join(cwd, 'both.txt'), 'one\nTWO\nTHREE\nfour\n', 'utf8');
 
   await expect(readChangeCounts(cwd)).resolves.toEqual({ files: 1, insertions: 2, deletions: 2 });
+});
+
+it('reads the two rev-list counts, left ahead and right behind', () => {
+  expect(parseRevList('2\t1\n')).toEqual({ ahead: 2, behind: 1 });
+  expect(parseRevList('0\t3\n')).toEqual({ ahead: 0, behind: 3 });
+});
+
+it('reports no upstream position on a branch that has never been pushed', async () => {
+  const cwd = repo();
+  execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd });
+  execFileSync('git', ['config', 'user.name', 'test'], { cwd });
+  writeFileSync(join(cwd, 'one.txt'), 'a\n', 'utf8');
+  execFileSync('git', ['add', 'one.txt'], { cwd });
+  execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-qm', 'first'], { cwd });
+
+  await expect(readUpstreamCounts(cwd)).resolves.toEqual({ ahead: 0, behind: 0 });
+});
+
+it('counts the commits the upstream is missing', async () => {
+  const remote = mkdtempSync(join(tmpdir(), 'pi-bar-remote-'));
+  execFileSync('git', ['init', '-q', '--bare'], { cwd: remote });
+
+  const cwd = repo();
+  execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd });
+  execFileSync('git', ['config', 'user.name', 'test'], { cwd });
+  writeFileSync(join(cwd, 'one.txt'), 'a\n', 'utf8');
+  execFileSync('git', ['add', 'one.txt'], { cwd });
+  execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-qm', 'first'], { cwd });
+  execFileSync('git', ['remote', 'add', 'origin', remote], { cwd });
+  execFileSync('git', ['push', '-q', '-u', 'origin', 'HEAD'], { cwd });
+
+  await expect(readUpstreamCounts(cwd)).resolves.toEqual({ ahead: 0, behind: 0 });
+
+  writeFileSync(join(cwd, 'two.txt'), 'b\n', 'utf8');
+  execFileSync('git', ['add', 'two.txt'], { cwd });
+  execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-qm', 'second'], { cwd });
+
+  await expect(readUpstreamCounts(cwd)).resolves.toEqual({ ahead: 1, behind: 0 });
 });

@@ -25,6 +25,7 @@ export interface SegmentToggles {
   cwd: boolean;
   branch: boolean;
   changes: boolean;
+  upstream: boolean;
   statuses: boolean;
   tokens: boolean;
   providers: boolean;
@@ -51,6 +52,7 @@ export const DEFAULT_CONFIG: BarConfig = {
     cwd: true,
     branch: true,
     changes: true,
+    upstream: true,
     statuses: true,
     tokens: true,
     providers: true,
@@ -204,6 +206,7 @@ elapsed = true    # how long the current (or last) turn took
 cwd = true        # working directory
 branch = true     # git branch
 changes = true    # +added / -removed lines in the working tree
+upstream = true   # ↑2↓1 unpushed / unpulled commits
 statuses = true   # extension statuses on the third row
 tokens = true     # ctx 125K/1M on the third row
 providers = true  # provider count, only shown above one

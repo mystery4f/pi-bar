@@ -6,6 +6,10 @@
  * a file edited in both places shows up in both diffs and must still count once. Untracked files
  * are left out of both on purpose: git has no lines to diff, and a file count read as a line count
  * would be a lie.
+ *
+ * The ahead/behind figures come from `rev-list --left-right --count HEAD...@{upstream}`: commits
+ * the branch has not pushed, and commits the upstream has that it lacks. A branch with no upstream
+ * (or a git that fails) reports nothing, so the segment stays off the row.
  */
 import { execFile } from 'node:child_process';
 
@@ -17,6 +21,13 @@ export interface LineCounts {
 export interface ChangeCounts extends LineCounts {
   files: number;
 }
+
+export interface UpstreamCounts {
+  ahead: number;
+  behind: number;
+}
+
+export const NO_UPSTREAM: UpstreamCounts = { ahead: 0, behind: 0 };
 
 const TIMEOUT_MS = 2000;
 
@@ -32,8 +43,8 @@ export const parseShortStat = (text: string): LineCounts => ({
 export const parseStatusCount = (text: string): number =>
   text.split('\n').filter((line) => line.length >= 2 && !line.startsWith('??')).length;
 
-/** A failing git (no repository, no binary, no permission) reads as "nothing changed". */
-const shortStat = (cwd: string, args: string[]): Promise<string> =>
+/** A failing git (no repository, no upstream, no binary, no permission) reads as no output. */
+const runGit = (cwd: string, args: string[]): Promise<string> =>
   new Promise((resolve) => {
     execFile(
       'git',
@@ -50,9 +61,9 @@ const shortStat = (cwd: string, args: string[]): Promise<string> =>
 
 export const readChangeCounts = async (cwd: string): Promise<ChangeCounts> => {
   const [unstaged, staged, status] = await Promise.all([
-    shortStat(cwd, ['diff', '--shortstat']),
-    shortStat(cwd, ['diff', '--cached', '--shortstat']),
-    shortStat(cwd, ['status', '--porcelain']),
+    runGit(cwd, ['diff', '--shortstat']),
+    runGit(cwd, ['diff', '--cached', '--shortstat']),
+    runGit(cwd, ['status', '--porcelain']),
   ]);
   const worktree = parseShortStat(unstaged);
   const index = parseShortStat(staged);
@@ -63,3 +74,14 @@ export const readChangeCounts = async (cwd: string): Promise<ChangeCounts> => {
     deletions: worktree.deletions + index.deletions,
   };
 };
+
+/** `2\t1` from `rev-list --left-right --count`: left is ahead, right is behind. */
+export const parseRevList = (text: string): UpstreamCounts => {
+  const [ahead, behind] = text.trim().split(/\s+/);
+
+  return { ahead: Number(ahead ?? 0) || 0, behind: Number(behind ?? 0) || 0 };
+};
+
+/** Branch position against its upstream; a branch without one reads as level. */
+export const readUpstreamCounts = async (cwd: string): Promise<UpstreamCounts> =>
+  parseRevList(await runGit(cwd, ['rev-list', '--left-right', '--count', 'HEAD...@{upstream}']));

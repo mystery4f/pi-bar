@@ -1,3 +1,7 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { beforeEach, expect, it, vi } from 'vitest';
 import piBar from '../../src/index.ts';
 import { createHarness, type Harness, stripAnsi } from '../support/fake-pi.ts';
@@ -171,4 +175,29 @@ it('shows no rate before the first request finishes', () => {
   const bar = install();
 
   expect(bar.plain(150).rows[0] ?? '').not.toContain('/s');
+});
+
+it('shows the commits the upstream is missing', async () => {
+  const remote = mkdtempSync(join(tmpdir(), 'pi-bar-remote-'));
+  execFileSync('git', ['init', '-q', '--bare'], { cwd: remote });
+
+  const cwd = mkdtempSync(join(tmpdir(), 'pi-bar-upstream-'));
+  execFileSync('git', ['init', '-q'], { cwd });
+  execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd });
+  execFileSync('git', ['config', 'user.name', 'test'], { cwd });
+  writeFileSync(join(cwd, 'one.txt'), 'a\n', 'utf8');
+  execFileSync('git', ['add', 'one.txt'], { cwd });
+  execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-qm', 'first'], { cwd });
+  execFileSync('git', ['remote', 'add', 'origin', remote], { cwd });
+  execFileSync('git', ['push', '-q', '-u', 'origin', 'HEAD'], { cwd });
+  writeFileSync(join(cwd, 'two.txt'), 'b\n', 'utf8');
+  execFileSync('git', ['add', 'two.txt'], { cwd });
+  execFileSync('git', ['-c', 'commit.gpgsign=false', 'commit', '-qm', 'second'], { cwd });
+
+  const bar = install({ cwd });
+  bar.emit('turn_end');
+
+  await vi.waitFor(() => {
+    expect(bar.plain(150).rows[1] ?? '').toContain('\u21911');
+  });
 });

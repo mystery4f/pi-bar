@@ -8,7 +8,7 @@
 import type { ExtensionContext, ReadonlyFooterDataProvider } from '@earendil-works/pi-coding-agent';
 import type { TUI } from '@earendil-works/pi-tui';
 import type { BarConfig, BarStyle } from './config.ts';
-import { type ChangeCounts, readChangeCounts } from './git.ts';
+import { type ChangeCounts, NO_UPSTREAM, readChangeCounts, readUpstreamCounts, type UpstreamCounts } from './git.ts';
 import { type LineStyle, layout, renderLine, type Segment } from './layout.ts';
 import { PALETTE, stripAnsi } from './palette.ts';
 import { createRateMeter, type RateSample, type TokenUsage } from './rates.ts';
@@ -77,6 +77,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   const activeTools = new Map<string, string>();
   const rates = createRateMeter({ windowMs: config.rateWindowSeconds * 1000, onSample: logRateSample });
   let changes: ChangeCounts = { files: 0, insertions: 0, deletions: 0 };
+  let upstream: UpstreamCounts = NO_UPSTREAM;
   let turnStartedAt: number | null = null;
   let lastTurnMs: number | null = null;
   let clockTimer: ReturnType<typeof setInterval> | null = null;
@@ -145,6 +146,13 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   /** Time the current turn has been running, or how long the last one took. */
   const elapsedMs = (): number | null => (turnStartedAt === null ? lastTurnMs : Date.now() - turnStartedAt);
 
+  /** `\u21912\u21931`: unpushed commits first, then commits waiting upstream. */
+  const upstreamText = (): string => {
+    const ahead = upstream.ahead > 0 ? `\u2191${upstream.ahead}` : '';
+    const behind = upstream.behind > 0 ? `\u2193${upstream.behind}` : '';
+
+    return `${ahead}${behind}`;
+  };
   /** Session throughput, in tokens per second. */
   const rateSegment = (prefix: string, perSecond: number): Segment => ({
     prefix,
@@ -234,6 +242,13 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         fg: PALETTE.text,
         flatFg: PALETTE.inkGreen,
         bg: PALETTE.gitClean,
+      }),
+      ...keep(config.segments.upstream && upstream.ahead + upstream.behind > 0, {
+        text: upstreamText(),
+        fg: PALETTE.inkText,
+        flatFg: PALETTE.inkText,
+        bg: PALETTE.dir,
+        collapse: 2,
       }),
       // How much of the tree moved, before how many lines moved: a file count is what turns
       // "+4 -880" from a scare into a sentence.
@@ -361,15 +376,18 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
       requestRender();
     },
     updateChanges(cwd) {
-      void readChangeCounts(cwd).then((next) => {
-        if (
-          next.files === changes.files &&
-          next.insertions === changes.insertions &&
-          next.deletions === changes.deletions
-        )
-          return;
+      void Promise.all([readChangeCounts(cwd), readUpstreamCounts(cwd)]).then(([nextChanges, nextUpstream]) => {
+        const moved =
+          nextChanges.files !== changes.files ||
+          nextChanges.insertions !== changes.insertions ||
+          nextChanges.deletions !== changes.deletions ||
+          nextUpstream.ahead !== upstream.ahead ||
+          nextUpstream.behind !== upstream.behind;
 
-        changes = next;
+        if (!moved) return;
+
+        changes = nextChanges;
+        upstream = nextUpstream;
         requestRender();
       });
     },
