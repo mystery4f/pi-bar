@@ -20,6 +20,7 @@ repaints the palette. Anything it cannot express is out of scope until a key for
 style = "mixed"          # mixed | block | flat
 
 [segments]
+rates = true
 cwd = true
 branch = true
 statuses = true
@@ -46,6 +47,7 @@ bottom; `block` and `flat` paint all three rows the same way.
 | `model` | the model name |
 | `thinking` | the thinking level (`think:off` when unset) |
 | `context` | the context percentage |
+| `rates` | `in 40K/s out 200/s` from the last request |
 | `cwd` | the working directory on the second row |
 | `branch` | the git branch on the second row |
 | `statuses` | extension statuses on the third row |

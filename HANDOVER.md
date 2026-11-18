@@ -30,6 +30,7 @@ A three-row footer bar, replacing pi's built-in footer for the session.
 | `src/layout.ts` | `Segment`, `visualWidth`, `renderLine` + the collapse ladder, `layout.styles` |
 | `src/config.ts` | TOML schema, loader, `ensureConfigFile`, palette override |
 | `src/palette.ts` | colours, escape helpers, `stripAnsi` |
+| `src/rates.ts` | prefill vs generation windows, `in`/`out` tokens per second |
 | `scripts/preview.ts` | renders every state into `.tmp/preview.html` (`npm run preview`) |
 | `test/support/fake-pi.ts` | installs the entry into a fake pi and replays events |
 | `docs/scope.md` | in / out / deferred, with unlock conditions |

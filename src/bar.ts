@@ -10,6 +10,7 @@ import type { TUI } from '@earendil-works/pi-tui';
 import type { BarConfig } from './config.ts';
 import { layout, renderLine, type Segment } from './layout.ts';
 import { PALETTE, stripAnsi } from './palette.ts';
+import { createRateMeter, type TokenUsage } from './rates.ts';
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
@@ -28,6 +29,9 @@ export interface Bar {
   render(ctx: ExtensionContext, footerData: ReadonlyFooterDataProvider, width: number): string[];
   turnStart(): void;
   turnEnd(): void;
+  messageStart(role: string): void;
+  messageToken(role: string): void;
+  messageEnd(role: string, usage: TokenUsage | undefined): void;
   toolStart(toolCallId: string, toolName: string): void;
   toolEnd(toolCallId: string): void;
   /** Ask pi to redraw, for changes it does not announce itself. */
@@ -43,6 +47,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   let spinnerTimer: ReturnType<typeof setInterval> | null = null;
   let streaming = false;
   const activeTools = new Map<string, string>();
+  const rates = createRateMeter();
 
   const requestRender = (): void => {
     tui.requestRender();
@@ -74,6 +79,17 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   /** A segment that a config switch can remove; disabled segments never reach the row. */
   const keep = (enabled: boolean, segment: Segment): Segment[] => (enabled ? [segment] : []);
 
+  /** One phase of the last request, in tokens per second. */
+  const rateSegment = (prefix: string, perSecond: number): Segment => ({
+    prefix,
+    text: `${compact(perSecond)}/s`,
+    prefixFg: PALETTE.dim,
+    fg: PALETTE.text,
+    flatFg: PALETTE.inkYellow,
+    bg: PALETTE.dir,
+    collapse: 4,
+  });
+
   const buildLines = (ctx: ExtensionContext, footerData: ReadonlyFooterDataProvider): Segment[][] => {
     const branch = footerData.getGitBranch();
     const model = ctx.model?.id ?? 'no model';
@@ -93,6 +109,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
             ? PALETTE.inkYellow
             : PALETTE.inkGreen;
 
+    const rate = config.segments.rates ? rates.current : undefined;
     // Line 1 — what the agent is doing right now.
     const working: Segment[] = [
       ...keep(config.segments.activity, {
@@ -125,6 +142,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         bg: contextBg,
         collapse: 4,
       }),
+      ...(rate === undefined ? [] : [rateSegment('in', rate.input), rateSegment('out', rate.output)]),
     ];
 
     // Line 2 — where the work is happening.
@@ -213,6 +231,16 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     },
     toolEnd(toolCallId) {
       activeTools.delete(toolCallId);
+      requestRender();
+    },
+    messageStart(role) {
+      rates.begin(role, Date.now());
+    },
+    messageToken(role) {
+      rates.firstToken(role, Date.now());
+    },
+    messageEnd(role, usage) {
+      rates.end(role, usage, Date.now());
       requestRender();
     },
     refresh() {

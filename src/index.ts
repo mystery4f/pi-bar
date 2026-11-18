@@ -6,6 +6,14 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { type Bar, createBar } from './bar.ts';
 import { applyColors, ensureConfigFile, loadConfig } from './config.ts';
 
+import type { TokenUsage } from './rates.ts';
+
+/** Only assistant messages carry usage; the rest of the union is ignored. */
+const usageOf = (message: unknown): TokenUsage | undefined => {
+  const usage = (message as { usage?: TokenUsage }).usage;
+
+  return usage;
+};
 export default function piBar(pi: ExtensionAPI): void {
   let bar: Bar | null = null;
 
@@ -42,4 +50,7 @@ export default function piBar(pi: ExtensionAPI): void {
 
   pi.on('tool_execution_start', (event) => bar?.toolStart(event.toolCallId, event.toolName));
   pi.on('tool_execution_end', (event) => bar?.toolEnd(event.toolCallId));
+  pi.on('message_start', (event) => bar?.messageStart(event.message.role));
+  pi.on('message_update', (event) => bar?.messageToken(event.message.role));
+  pi.on('message_end', (event) => bar?.messageEnd(event.message.role, usageOf(event.message)));
 }

@@ -106,3 +106,41 @@ it('renders the branch name and no git segment outside a checkout', () => {
   expect(rows[1]).toContain('pi-bar');
   expect(rows[1]).not.toContain('main');
 });
+
+it('shows in and out rates on the working row after a request', () => {
+  vi.useFakeTimers();
+  const bar = install();
+  const message = { role: 'assistant' };
+
+  bar.emit('message_start', { message });
+  vi.advanceTimersByTime(500);
+  bar.emit('message_update', { message });
+  vi.advanceTimersByTime(2000);
+  bar.emit('message_end', { message: { ...message, usage: { input: 20_000, output: 400 } } });
+
+  // 20K prompt read in 500ms, 400 output tokens over 2s of streaming.
+  const working = bar.plain(150).rows[0] ?? '';
+  expect(working).toContain('in 40K/s');
+  expect(working).toContain('out 200/s');
+  vi.useRealTimers();
+});
+
+it('keeps the last rate visible once the turn is over', () => {
+  vi.useFakeTimers();
+  const bar = install();
+  const message = { role: 'assistant' };
+
+  bar.emit('message_start', { message });
+  vi.advanceTimersByTime(1000);
+  bar.emit('message_end', { message: { ...message, usage: { input: 20_000, output: 400 } } });
+  bar.emit('turn_end');
+
+  expect(bar.plain(150).rows[0] ?? '').toContain('out');
+  vi.useRealTimers();
+});
+
+it('shows no rate before the first request finishes', () => {
+  const bar = install();
+
+  expect(bar.plain(150).rows[0] ?? '').not.toContain('/s');
+});

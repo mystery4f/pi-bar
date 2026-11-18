@@ -64,6 +64,18 @@ const component = footerFactory(
   },
 );
 
+// One finished request, so the rates have something to show. A script finishes in micro-
+// seconds, so the clock is faked to a plausible prefill plus a two-second stream.
+const realNow = Date.now;
+let clock = 0;
+Date.now = () => clock;
+emit('message_start', { message: { role: 'assistant' } });
+clock += 500;
+emit('message_update', { message: { role: 'assistant' } });
+clock += 2000;
+emit('message_end', { message: { role: 'assistant', usage: { input: 24_000, cacheRead: 96_000, output: 620 } } });
+Date.now = realNow;
+
 const toHtml = (line: string): string => {
   let out = '';
   let fgColor = '';

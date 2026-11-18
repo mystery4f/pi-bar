@@ -20,6 +20,7 @@ export interface SegmentToggles {
   model: boolean;
   thinking: boolean;
   context: boolean;
+  rates: boolean;
   cwd: boolean;
   branch: boolean;
   statuses: boolean;
@@ -41,6 +42,7 @@ export const DEFAULT_CONFIG: BarConfig = {
     model: true,
     thinking: true,
     context: true,
+    rates: true,
     cwd: true,
     branch: true,
     statuses: true,
@@ -178,6 +180,7 @@ activity = true   # spinner and running tool names
 model = true      # model name
 thinking = true   # thinking level
 context = true    # context percentage
+rates = true      # in/out tokens per second from the last request
 cwd = true        # working directory
 branch = true     # git branch
 statuses = true   # extension statuses on the third row
