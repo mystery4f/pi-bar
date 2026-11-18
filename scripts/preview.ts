@@ -31,7 +31,7 @@ const emit = (event: string, ...args: unknown[]): void => {
 
 const ctx: any = {
   hasUI: true,
-  cwd: 'C:\\Users\\Administrator\\.pi\\agent\\git\\github.com\\mystery4f\\pi-bar',
+  cwd: process.cwd(),
   model: { id: 'group/deepseek-flash' },
   thinkingLevel: 'medium',
   getContextUsage: () => ({ tokens: 118000, contextWindow: 200000, percent: 59 }),
@@ -76,6 +76,11 @@ clock += 2000;
 emit('message_end', { message: { role: 'assistant', usage: { input: 24_000, cacheRead: 96_000, output: 620 } } });
 Date.now = realNow;
 
+// One finished tool, so the second row has change counts to show. They arrive asynchronously
+// from git, hence the short wait before anything is rendered.
+emit('tool_execution_end', { toolCallId: 'preview', toolName: 'edit' }, ctx);
+await new Promise((resolve) => setTimeout(resolve, 500));
+
 const toHtml = (line: string): string => {
   let out = '';
   let fgColor = '';
@@ -116,6 +121,15 @@ for (const [name, style] of [
   shot(`${name} · 150 列`, 150);
   shot(`${name} · 60 列`, 60);
 }
+
+// `chips` is the same geometry on every row with the quiet backgrounds muted, so the sample
+// swaps the two live values the render path reads instead of rebuilding the bar.
+const cleanGreen = PALETTE.gitClean;
+PALETTE.gitClean = PALETTE.quietClean;
+layout.styles = ['block', 'block', 'block'];
+shot('同族 chip · 150 列', 150);
+shot('同族 chip · 60 列', 60);
+PALETTE.gitClean = cleanGreen;
 
 layout.styles = ['block', 'flat', 'flat'];
 for (const width of [150, 110, 80, 60, 45, 30]) shot(`${width} 列`, width);
@@ -166,7 +180,7 @@ for (const [name, colors] of candidates) {
   shot(`配色 ${name} · 60 列`, 60);
 }
 Object.assign(PALETTE, original as Record<keyof BlockPalette, RGB>);
-emit('turn_end', {});
+emit('turn_end', {}, ctx);
 
 // Streaming with no tool yet: the turn has started, the model is thinking.
 emit('turn_start', {});
@@ -176,9 +190,9 @@ shot('思考中 · 45 列', 45);
 // A tool runs mid-turn.
 emit('tool_execution_start', { toolCallId: 't1', toolName: 'bash' });
 shot('运行工具', 150);
-emit('tool_execution_end', { toolCallId: 't1', toolName: 'bash' });
+emit('tool_execution_end', { toolCallId: 't1', toolName: 'bash' }, ctx);
 
-emit('turn_end', {});
+emit('turn_end', {}, ctx);
 shot('空闲', 150);
 
 ctx.getContextUsage = () => ({ tokens: 182000, contextWindow: 200000, percent: 91 });

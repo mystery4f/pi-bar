@@ -13,7 +13,7 @@ import { parse } from 'smol-toml';
 import type { LineStyle } from './layout.ts';
 import { PALETTE, type RGB } from './palette.ts';
 
-export type BarStyle = 'mixed' | LineStyle;
+export type BarStyle = 'mixed' | 'chips' | LineStyle;
 
 export interface SegmentToggles {
   activity: boolean;
@@ -23,6 +23,7 @@ export interface SegmentToggles {
   rates: boolean;
   cwd: boolean;
   branch: boolean;
+  changes: boolean;
   statuses: boolean;
   tokens: boolean;
   providers: boolean;
@@ -45,6 +46,7 @@ export const DEFAULT_CONFIG: BarConfig = {
     rates: true,
     cwd: true,
     branch: true,
+    changes: true,
     statuses: true,
     tokens: true,
     providers: true,
@@ -60,7 +62,7 @@ export const DEFAULT_CONFIG: BarConfig = {
 export const configPath = (): string =>
   process.env.PI_BAR_CONFIG?.trim() || join(homedir(), '.pi', 'agent', 'pi-bar.toml');
 
-const styles = ['mixed', 'block', 'flat'] as const;
+const styles = ['mixed', 'chips', 'block', 'flat'] as const;
 
 /** `#rrggbb` only: a named terminal colour would not survive the truecolour escapes we emit. */
 const parseHex = (value: string): RGB | undefined => {
@@ -172,7 +174,8 @@ export function applyColors(config: BarConfig): void {
 export const TEMPLATE = `# pi-bar settings. Restart pi after an edit — the file is read once per session.
 
 [layout]
-# mixed: block, flat, flat top to bottom. Or "block" / "flat" for all three rows.
+# mixed (default): row 1 in cells, the two quiet rows as text. "chips": every row in cells,
+# the quiet ones on slate. Or "block" / "flat" for all three rows.
 style = "mixed"
 
 [segments]
@@ -183,6 +186,7 @@ context = true    # context percentage
 rates = true      # in/out tokens per second from the last request
 cwd = true        # working directory
 branch = true     # git branch
+changes = true    # +added / -removed lines in the working tree
 statuses = true   # extension statuses on the third row
 tokens = true     # ctx 125K/1M on the third row
 providers = true  # provider count, only shown above one

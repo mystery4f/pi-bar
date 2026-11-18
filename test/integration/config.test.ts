@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
 import piBar from '../../src/index.ts';
-import { createHarness, type Harness } from '../support/fake-pi.ts';
+import { createHarness, type Harness, stripAnsi } from '../support/fake-pi.ts';
 
 const install = (toml: string, options: Parameters<typeof createHarness>[0] = {}): Harness => {
   const path = join(mkdtempSync(join(tmpdir(), 'pi-bar-config-')), 'pi-bar.toml');
@@ -63,4 +63,24 @@ it('reports a broken file once and still renders the default bar', () => {
   expect(notices).toHaveLength(1);
   expect(notices[0]).toContain('pi-bar.toml');
   expect(harness.plain(150).rows[0]).toContain('group/deepseek-flash');
+});
+
+it('wraps every row in cells when style is chips', () => {
+  const rows = install('[layout]\nstyle = "chips"').render(150).map(stripAnsi);
+
+  expect(rows[1]).toContain('\uE0BA');
+  expect(rows[2]).toContain('\uE0BA');
+});
+
+it('keeps the quiet rows as text in the default style', () => {
+  const rows = install('').render(150).map(stripAnsi);
+
+  expect(rows[1]).not.toContain('\uE0BA');
+});
+
+it('sends the quiet rows slate instead of green in chips style', () => {
+  const place = install('[layout]\nstyle = "chips"').render(150)[1] ?? '';
+
+  expect(place).toContain('48;2;59;66;97');
+  expect(place).not.toContain('48;2;0;107;29');
 });

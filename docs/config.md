@@ -17,7 +17,7 @@ repaints the palette. Anything it cannot express is out of scope until a key for
 
 ```toml
 [layout]
-style = "mixed"          # mixed | block | flat
+style = "mixed"          # mixed | chips | block | flat
 
 [segments]
 rates = true
@@ -37,7 +37,10 @@ activity = "#313244"
 ## Keys
 
 `layout.style` — how each row is drawn. `mixed` (default) is block, flat, flat top to
-bottom; `block` and `flat` paint all three rows the same way.
+bottom, with the quiet rows' separators lifted to `#6c7086` and their text aligned to the
+first column of a cell. `chips` keeps the same geometry on every row but gives the quiet rows
+a slate background, so the family matches without the bottom rows competing. `block` and
+`flat` paint all three rows the same way.
 
 `segments.*` — boolean switches, all default `true`. Each one removes a segment:
 
@@ -50,6 +53,7 @@ bottom; `block` and `flat` paint all three rows the same way.
 | `rates` | `in 40 k/s out 200/s` from the last request |
 | `cwd` | the working directory on the second row |
 | `branch` | the git branch on the second row |
+| `changes` | `+12` `-3`, the working-tree line counts beside the branch: a green tint for added lines, a red one for removed, drawn as two touching chips |
 | `statuses` | extension statuses on the third row |
 | `tokens` | `ctx 125K/1M` on the third row |
 | `providers` | the provider count (only shown above one) |

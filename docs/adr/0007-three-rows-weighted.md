@@ -43,7 +43,9 @@ Two consequences follow from the roles:
 - **Four or more rows** — the fourth concern (session cost, todo, lint) fits in `reported` as a
   status key, and a fourth permanent row is transcript space spent on a rarely-read line.
 - **Same style on every row** — three rows of filled cells shout equally, and the row that
-  changes every second loses its emphasis.
+  changes every second loses its emphasis. Kept as `layout.style = "chips"` for anyone who
+  wants one family of cells, but it is not the default: muted slate alone does not restore the
+  emphasis the filled working row gets for free.
 
 ## Consequences
 

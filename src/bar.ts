@@ -7,8 +7,9 @@
  */
 import type { ExtensionContext, ReadonlyFooterDataProvider } from '@earendil-works/pi-coding-agent';
 import type { TUI } from '@earendil-works/pi-tui';
-import type { BarConfig } from './config.ts';
-import { layout, renderLine, type Segment } from './layout.ts';
+import type { BarConfig, BarStyle } from './config.ts';
+import { type ChangeCounts, readChangeCounts } from './git.ts';
+import { type LineStyle, layout, renderLine, type Segment } from './layout.ts';
 import { PALETTE, stripAnsi } from './palette.ts';
 import { createRateMeter, type TokenUsage } from './rates.ts';
 
@@ -36,18 +37,36 @@ export interface Bar {
   toolEnd(toolCallId: string): void;
   /** Ask pi to redraw, for changes it does not announce itself. */
   refresh(): void;
+  /** Re-read the working tree; the bar repaints only when the counts move. */
+  updateChanges(cwd: string): void;
   readonly layout: typeof layout;
   dispose(): void;
 }
 
+/** Rows per style: `mixed` leads with cells, `chips` gives every row the same cells, the rest repeat. */
+const rowStyles = (style: BarStyle): LineStyle[] => {
+  if (style === 'mixed') return ['block', 'flat', 'flat'];
+  if (style === 'chips') return ['block', 'block', 'block'];
+
+  return [style, style, style];
+};
+
+/**
+ * A quiet row in chips style keeps its cells but drops the green branch for slate, so the row
+ * shares the family's geometry without pulling the eye away from the working row.
+ */
+const quiet = (segment: Segment): Segment =>
+  segment.bg === PALETTE.gitClean ? { ...segment, bg: PALETTE.quietClean } : segment;
+
 export function createBar(tui: TUI, config: BarConfig): Bar {
-  layout.styles = config.style === 'mixed' ? ['block', 'flat', 'flat'] : [config.style, config.style, config.style];
+  layout.styles = rowStyles(config.style);
 
   let spinnerFrame = 0;
   let spinnerTimer: ReturnType<typeof setInterval> | null = null;
   let streaming = false;
   const activeTools = new Map<string, string>();
   const rates = createRateMeter();
+  let changes: ChangeCounts = { insertions: 0, deletions: 0 };
 
   const requestRender = (): void => {
     tui.requestRender();
@@ -170,6 +189,28 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         flatFg: PALETTE.inkGreen,
         bg: PALETTE.gitClean,
       }),
+      // Both halves stay silent at zero: a clean tree says nothing, and one-sided edits half a bar.
+      ...keep(config.segments.changes && changes.insertions > 0, {
+        text: `+${changes.insertions}`,
+        fg: PALETTE.inkGreen,
+        flatFg: PALETTE.inkGreen,
+        bg: PALETTE.addedBg,
+        flatChip: true,
+        // Right behind the branch: the counts belong to the tree the branch names, not to a
+        // separate group, so the chips start where the branch ends.
+        join: true,
+        collapse: 3,
+      }),
+      ...keep(config.segments.changes && changes.deletions > 0, {
+        text: `-${changes.deletions}`,
+        fg: PALETTE.inkRed,
+        flatFg: PALETTE.inkRed,
+        bg: PALETTE.removedBg,
+        flatChip: true,
+        // Glued to whatever the row shows before it, so the pair reads as one block.
+        join: true,
+        collapse: 3,
+      }),
     ];
 
     // Line 3 — the catch-all: anything the two rows above did not claim. A status often
@@ -220,7 +261,11 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     layout,
     render(ctx, footerData, width) {
       const rows = buildLines(ctx, footerData)
-        .map((segments, index) => renderLine(segments, width, layout.styles[index] ?? 'flat'))
+        .map((segments, index) => {
+          const shown = config.style === 'chips' && index > 0 ? segments.map(quiet) : segments;
+
+          return renderLine(shown, width, layout.styles[index] ?? 'flat');
+        })
         // A row with nothing to show is dropped, so an empty row never costs a line.
         .filter((line) => line.length > 0);
       return rows;
@@ -255,6 +300,14 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     },
     refresh() {
       requestRender();
+    },
+    updateChanges(cwd) {
+      void readChangeCounts(cwd).then((next) => {
+        if (next.insertions === changes.insertions && next.deletions === changes.deletions) return;
+
+        changes = next;
+        requestRender();
+      });
     },
     dispose() {
       stopSpinner();

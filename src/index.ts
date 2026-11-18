@@ -40,16 +40,23 @@ export default function piBar(pi: ExtensionAPI): void {
         },
       };
     });
+    bar?.updateChanges(ctx.cwd);
   });
 
   pi.on('model_select', () => bar?.refresh());
   pi.on('thinking_level_select', () => bar?.refresh());
 
   pi.on('turn_start', () => bar?.turnStart());
-  pi.on('turn_end', () => bar?.turnEnd());
+  pi.on('turn_end', (_event, ctx) => {
+    bar?.turnEnd();
+    bar?.updateChanges(ctx.cwd);
+  });
 
   pi.on('tool_execution_start', (event) => bar?.toolStart(event.toolCallId, event.toolName));
-  pi.on('tool_execution_end', (event) => bar?.toolEnd(event.toolCallId));
+  pi.on('tool_execution_end', (event, ctx) => {
+    bar?.toolEnd(event.toolCallId);
+    bar?.updateChanges(ctx.cwd);
+  });
   pi.on('message_start', (event) => bar?.messageStart(event.message.role));
   pi.on('message_update', (event) => bar?.messageToken(event.message.role));
   pi.on('message_end', (event) => bar?.messageEnd(event.message.role, usageOf(event.message)));

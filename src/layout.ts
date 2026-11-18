@@ -36,7 +36,15 @@ export interface Segment {
   /** Lower gives up space first. Undefined means "never collapse". */
   collapse?: number;
   /** Shown instead of `text` once this segment's turn to collapse comes. */
+  /** Shown instead of `text` once this segment's turn to collapse comes. */
   collapsed?: string;
+  /**
+   * Paint `bg` on a flat row too. Flat rows are text-only by default, so a segment asks for a
+   * chip only when it has to survive being quiet.
+   */
+  flatChip?: boolean;
+  /** On a flat row, drop the separator before this segment so two chips read as one pair. */
+  join?: boolean;
 }
 
 /** Width on screen: escape sequences count zero, wide glyphs count two. */
@@ -89,11 +97,22 @@ const blockLine = (list: readonly Segment[]): string => {
   return out;
 };
 
-const flatLine = (list: readonly Segment[]): string =>
-  list
-    .map((segment) => ` ${segmentText(segment, segment.flatFg ?? segment.fg)} `)
-    .join(`${RESET}${fg(PALETTE.sep)}${FLAT_SEPARATOR}`);
+/**
+ * A block row spends its first column on the leading cap, so flat rows start one
+ * column earlier. The pad puts the quiet rows' text on the working row's column.
+ */
+const FLAT_ALIGN = ' ';
 
+const flatLine = (list: readonly Segment[]): string => {
+  let out = FLAT_ALIGN;
+  for (const [index, segment] of list.entries()) {
+    if (index > 0 && segment.join !== true) out += `${RESET}${fg(PALETTE.sep)}${FLAT_SEPARATOR}`;
+    const text = ` ${segmentText(segment, segment.flatFg ?? segment.fg)} `;
+    out += segment.flatChip === true ? `${RESET}${bg(segment.bg)}${text}` : text;
+  }
+
+  return out;
+};
 /**
  * Draws one row inside `width`. When it does not fit, the segments with the lowest
  * `collapse` order give up space first — as shortened text, or by leaving the row —

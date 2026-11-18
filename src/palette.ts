@@ -35,7 +35,13 @@ export const PALETTE = {
   thinking: hex('#005b95'),
   dir: hex('#313244'),
   gitClean: hex('#006b1d'),
+  /** The clean branch in a quiet row: slate instead of green, so the row stops competing. */
+  quietClean: hex('#3b4261'),
   gitDirty: hex('#a17a00'),
+  /** Chip tint behind an added-line count: green, but not a filled cell. */
+  addedBg: hex('#123420'),
+  /** Chip tint behind a removed-line count. */
+  removedBg: hex('#3a1d26'),
   activity: hex('#313244'),
   activityFg: hex('#2dd4bf'),
   ok: hex('#006b1d'),
@@ -43,7 +49,7 @@ export const PALETTE = {
   alert: hex('#972e2d'),
   /** Keys, units and flat separators: present, but never louder than the value. */
   dim: hex('#6c7086'),
-  sep: hex('#45475a'),
+  sep: hex('#6c7086'),
   inkText: hex('#cdd6f4'),
   inkBlue: hex('#89b4fa'),
   inkTeal: hex('#94e2d5'),

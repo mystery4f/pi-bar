@@ -39,14 +39,14 @@ describe('renderLine flat', () => {
   it('drops a segment with empty text instead of leaving a stray separator', () => {
     const line = stripAnsi(renderLine([segment('kept'), segment('')], 80, 'flat'));
 
-    expect(line).toBe(' kept ');
+    expect(line).toBe('  kept ');
   });
 
   it('keeps multi-line status text on one line', () => {
     const line = stripAnsi(renderLine([segment('two\nlines\there')], 80, 'flat'));
 
     expect(line).not.toContain('\n');
-    expect(line).toBe(' two lines here ');
+    expect(line).toBe('  two lines here ');
   });
 
   it('returns an empty string when every segment is empty', () => {
@@ -76,5 +76,30 @@ describe('renderLine block', () => {
     const line = renderLine([segment('one')], 80, 'block');
 
     expect(stripAnsi(line)).toBe('\uE0BA one \uE0BC');
+  });
+});
+
+describe('row alignment', () => {
+  it('puts flat text on the same column as block text', () => {
+    const flat = stripAnsi(renderLine([segment('same')], 80, 'flat'));
+    const block = stripAnsi(renderLine([segment('same')], 80, 'block'));
+
+    expect(flat.indexOf('same')).toBe(block.indexOf('same'));
+  });
+
+  it('leaves a flat row text-only unless a segment asks for a chip', () => {
+    const plain = renderLine([segment('a'), segment('b')], 80, 'flat');
+    const chipped = renderLine([segment('a'), { ...segment('b'), flatChip: true }], 80, 'flat');
+
+    expect(plain).not.toContain('\x1b[48;2;0;91;149m');
+    expect(chipped).toContain('\x1b[48;2;0;91;149m');
+  });
+
+  it('drops the separator before a joined segment so two chips touch', () => {
+    const apart = stripAnsi(renderLine([segment('a'), segment('b')], 80, 'flat'));
+    const joined = stripAnsi(renderLine([segment('a'), { ...segment('b'), join: true }], 80, 'flat'));
+
+    expect(apart).toContain('\u2502');
+    expect(joined).not.toContain('\u2502');
   });
 });
