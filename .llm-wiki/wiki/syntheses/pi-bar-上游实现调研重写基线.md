@@ -51,3 +51,9 @@ updated: 2026-11-18
 - 四套 eval 字段名 → 一套 `eval` / `when` 表达式。
 - `String.fromCharCode` 混淆的 `setFooter` → 直接调用，类型来自 d.ts。
 - 三个 `state` 语义各异的 `states[]` → 统一的 `when` 谓词 + 每类型固定 token。
+
+## 本轮产出的洞察（2026-11-18）
+
+- [[sources/pi-footer-api-what-extensions-can-read]] — footer 扩展能拿到的三类数据，以及拿不到的 cache/成本。
+- [[sources/collapse-ladder-drop-one-segment-per-step]] — 收缩阶梯每步只丢一段，否则整行消失。
+- [[sources/disable-plugin-ab-before-probing-ui-height]] — 界面高度问题先做禁用插件 A/B。

@@ -1,7 +1,34 @@
 {
   "version": "1.0",
-  "last_updated": "2026-11-18T07:13:23.018Z",
+  "last_updated": "2026-11-18T09:43:41.779Z",
   "pages": {
+    "sources/collapse-ladder-drop-one-segment-per-step": {
+      "type": "source",
+      "title": "收缩阶梯：每步只放弃一段而非整档",
+      "category": "bugfix",
+      "status": "insight",
+      "slug": "collapse-ladder-drop-one-segment-per-step",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
+    "sources/disable-plugin-ab-before-probing-ui-height": {
+      "type": "source",
+      "title": "界面高度问题先用禁用插件做 A/B",
+      "category": "debugging",
+      "status": "insight",
+      "slug": "disable-plugin-ab-before-probing-ui-height",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
+    "sources/pi-footer-api-what-extensions-can-read": {
+      "type": "source",
+      "title": "pi 1.5.2 footer 扩展可见的数据边界",
+      "category": "architecture",
+      "status": "insight",
+      "slug": "pi-footer-api-what-extensions-can-read",
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    },
     "syntheses/pi-bar-上游实现调研重写基线": {
       "type": "synthesis",
       "title": "pi-bar 上游实现调研（重写基线）",
