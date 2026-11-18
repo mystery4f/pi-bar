@@ -189,7 +189,7 @@ export function createBar(tui: TUI): Bar {
         .map((segments, index) => renderLine(segments, width, layout.styles[index] ?? 'flat'))
         // A row with nothing to show is dropped, so an empty row never costs a line.
         .filter((line) => line.length > 0);
-      return [...rows, ''];
+      return rows;
     },
     turnStart() {
       streaming = true;

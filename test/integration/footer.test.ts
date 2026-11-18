@@ -18,21 +18,21 @@ beforeEach(() => {
 it('renders the three rows in order, working row first', () => {
   const bar = install().plain(150);
 
-  // Three content rows plus the trailing spacer the footer keeps.
-  expect(bar.rows).toHaveLength(4);
+  // Exactly three rows: the footer container adds its own spacing, so an extra
+  // spacer row here shows up as a blank strip under the bar.
+  expect(bar.rows).toHaveLength(3);
   expect(bar.rows[0]).toContain('group/deepseek-flash');
   expect(bar.rows[1]).toContain('pi-bar');
   expect(bar.rows[1]).toContain('main');
-  expect(bar.rows[3]).toBe('');
+  expect(bar.rows[2]).toContain('ctx');
 });
 
 it('drops the report row when nothing falls through to it', () => {
   const bar = install({ tokens: null }).plain(150);
 
-  // Two content rows plus the trailing spacer: an empty report row costs nothing.
-  expect(bar.rows).toHaveLength(3);
+  // Two rows only: an empty report row costs nothing, not even a blank line.
+  expect(bar.rows).toHaveLength(2);
   expect(bar.rows[1]).toContain('pi-bar');
-  expect(bar.rows[2]).toBe('');
 });
 
 it('reports the context tokens on the catch-all row', () => {
