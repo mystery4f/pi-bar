@@ -13,6 +13,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import piBar from '../src/index.ts';
 import { layout } from '../src/layout.ts';
+import { PALETTE, type RGB } from '../src/palette.ts';
 
 type LineStyle = 'block' | 'flat';
 
@@ -57,6 +58,8 @@ const component = footerFactory(
   {
     getGitBranch: () => branch,
     getExtensionStatuses: () => statuses,
+    getAvailableProviderCount: () => 2,
+    onBranchChange: () => () => {},
   },
 );
 
@@ -103,6 +106,54 @@ for (const [name, style] of [
 
 layout.styles = ['block', 'flat', 'flat'];
 for (const width of [150, 110, 80, 60, 45, 30]) shot(`${width} 列`, width);
+
+// Row-one backgrounds, three candidates. The palette is live state, so the same render
+// code can be judged side by side instead of being argued about.
+type BlockPalette = Partial<Pick<typeof PALETTE, 'activity' | 'model' | 'thinking' | 'ok' | 'warn' | 'alert'>>;
+
+const original: BlockPalette = {
+  activity: PALETTE.activity,
+  model: PALETTE.model,
+  thinking: PALETTE.thinking,
+  ok: PALETTE.ok,
+  warn: PALETTE.warn,
+  alert: PALETTE.alert,
+};
+
+const candidates: Array<[string, BlockPalette]> = [
+  ['A 现行', original],
+  [
+    'B 三段分色',
+    {
+      activity: [14, 116, 144],
+      model: [30, 64, 175],
+      thinking: [91, 33, 182],
+      ok: [21, 128, 61],
+      warn: [180, 83, 9],
+      alert: [185, 28, 28],
+    },
+  ],
+  [
+    'C 单强调',
+    {
+      activity: [15, 118, 110],
+      model: [59, 66, 82],
+      thinking: [59, 66, 82],
+      ok: [22, 101, 52],
+      warn: [146, 64, 14],
+      alert: [153, 27, 27],
+    },
+  ],
+];
+
+emit('turn_start', {});
+for (const [name, colors] of candidates) {
+  Object.assign(PALETTE, colors as Record<keyof BlockPalette, RGB>);
+  shot(`配色 ${name} · 150 列`, 150);
+  shot(`配色 ${name} · 60 列`, 60);
+}
+Object.assign(PALETTE, original as Record<keyof BlockPalette, RGB>);
+emit('turn_end', {});
 
 // Streaming with no tool yet: the turn has started, the model is thinking.
 emit('turn_start', {});

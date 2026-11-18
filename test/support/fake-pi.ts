@@ -34,6 +34,10 @@ interface HarnessOptions {
   modelId?: string;
   thinkingLevel?: string;
   percent?: number | null;
+  /** Token count of the live context; omit to derive it from `percent`, `null` for unknown. */
+  tokens?: number | null;
+  contextWindow?: number;
+  providers?: number;
   hasUI?: boolean;
 }
 
@@ -44,6 +48,9 @@ export function createHarness(options: HarnessOptions = {}): Harness {
   const modelId = options.modelId ?? 'group/deepseek-flash';
   const thinkingLevel = options.thinkingLevel ?? 'medium';
   const percent = options.percent === undefined ? 59 : options.percent;
+  const tokens = options.tokens === undefined ? (percent === null ? null : Math.round(percent * 1.5)) : options.tokens;
+  const contextWindow = options.contextWindow ?? 150;
+  const providers = options.providers ?? 1;
 
   const handlers = new Map<string, RegisteredHandler[]>();
   const statuses = new Map<string, string>();
@@ -60,7 +67,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
   const footerData = {
     getGitBranch: () => branch,
     getExtensionStatuses: () => statuses as ReadonlyMap<string, string>,
-    getAvailableProviderCount: () => 1,
+    getAvailableProviderCount: () => providers,
     onBranchChange: () => () => {},
   };
 
@@ -70,8 +77,8 @@ export function createHarness(options: HarnessOptions = {}): Harness {
     model: { id: modelId },
     thinkingLevel,
     getContextUsage: () => ({
-      tokens: percent === null ? null : Math.round(percent * 1.5),
-      contextWindow: 150,
+      tokens,
+      contextWindow,
       percent,
     }),
     ui: {

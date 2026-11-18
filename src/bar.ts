@@ -12,6 +12,16 @@ import { PALETTE } from './palette.ts';
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
+/** Token counts read at a glance: 1860 -> `1860`, 186000 -> `186K`, 1860000 -> `1.9M`. */
+const compact = (count: number): string => {
+  if (count < 1000) return String(count);
+
+  const thousands = count / 1000;
+  if (thousands < 1000) return `${Math.round(thousands)}K`;
+
+  return `${(thousands / 1000).toFixed(1).replace(/\.0$/, '')}M`;
+};
+
 export interface Bar {
   /** Rows for the current width; the caller owns adding the trailing spacer row. */
   render(ctx: ExtensionContext, footerData: ReadonlyFooterDataProvider, width: number): string[];
@@ -58,11 +68,8 @@ export function createBar(tui: TUI): Bar {
     return '';
   };
 
-  const buildLines = (
-    ctx: ExtensionContext,
-    branch: string | null,
-    statuses: ReadonlyMap<string, string>,
-  ): Segment[][] => {
+  const buildLines = (ctx: ExtensionContext, footerData: ReadonlyFooterDataProvider): Segment[][] => {
+    const branch = footerData.getGitBranch();
     const model = ctx.model?.id ?? 'no model';
     const thinking = ctx.thinkingLevel ?? '';
     const usage = ctx.getContextUsage();
@@ -131,8 +138,8 @@ export function createBar(tui: TUI): Bar {
       },
     ];
 
-    // Line 3 — what other extensions report, one segment per status key.
-    const reported: Segment[] = [...statuses.entries()].map(([key, text]) => ({
+    // Line 3 — the catch-all: anything the two rows above did not claim.
+    const reported: Segment[] = [...footerData.getExtensionStatuses().entries()].map(([key, text]) => ({
       text,
       prefix: key,
       prefixFg: PALETTE.dim,
@@ -142,13 +149,28 @@ export function createBar(tui: TUI): Bar {
       collapse: 0,
     }));
 
+    const extra = (prefix: string, text: string): Segment => ({
+      text,
+      prefix,
+      prefixFg: PALETTE.dim,
+      fg: PALETTE.activityFg,
+      flatFg: PALETTE.inkText,
+      bg: PALETTE.activity,
+      collapse: 0,
+    });
+
+    if (usage?.tokens != null) reported.push(extra('ctx', `${compact(usage.tokens)}/${compact(usage.contextWindow)}`));
+
+    const providers = footerData.getAvailableProviderCount();
+    if (providers > 1) reported.push(extra('providers', String(providers)));
+
     return [working, place, reported];
   };
 
   return {
     layout,
     render(ctx, footerData, width) {
-      const rows = buildLines(ctx, footerData.getGitBranch(), footerData.getExtensionStatuses())
+      const rows = buildLines(ctx, footerData)
         .map((segments, index) => renderLine(segments, width, layout.styles[index] ?? 'flat'))
         // A row with nothing to show is dropped, so an empty row never costs a line.
         .filter((line) => line.length > 0);

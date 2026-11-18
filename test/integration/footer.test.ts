@@ -18,21 +18,37 @@ beforeEach(() => {
 it('renders the three rows in order, working row first', () => {
   const bar = install().plain(150);
 
-  expect(bar.rows).toHaveLength(3);
+  // Three content rows plus the trailing spacer the footer keeps.
+  expect(bar.rows).toHaveLength(4);
   expect(bar.rows[0]).toContain('group/deepseek-flash');
   expect(bar.rows[1]).toContain('pi-bar');
   expect(bar.rows[1]).toContain('main');
-  // The last row is the spacer the footer keeps, not content.
-  expect(bar.rows[2]).toBe('');
+  expect(bar.rows[3]).toBe('');
 });
 
-it('drops the report row when no extension pushed a status', () => {
-  const bar = install().plain(150);
+it('drops the report row when nothing falls through to it', () => {
+  const bar = install({ tokens: null }).plain(150);
 
   // Two content rows plus the trailing spacer: an empty report row costs nothing.
   expect(bar.rows).toHaveLength(3);
   expect(bar.rows[1]).toContain('pi-bar');
   expect(bar.rows[2]).toBe('');
+});
+
+it('reports the context tokens on the catch-all row', () => {
+  const bar = install({ tokens: 118_400, contextWindow: 200_000 }).plain(150);
+  const report = bar.rows[2] ?? '';
+
+  expect(report).toContain('118K');
+  expect(report).toContain('200K');
+});
+
+it('hides the provider count when there is only one provider', () => {
+  const single = install({ providers: 1 }).plain(150);
+  const many = install({ providers: 3 }).plain(150);
+
+  expect(single.rows[2] ?? '').not.toContain('providers');
+  expect(many.rows[2] ?? '').toContain('3');
 });
 
 it('lists every status key on the report row, one segment per key', () => {
