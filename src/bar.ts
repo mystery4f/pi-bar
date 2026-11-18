@@ -7,11 +7,9 @@
  */
 import type { ExtensionContext, ReadonlyFooterDataProvider } from '@earendil-works/pi-coding-agent';
 import type { TUI } from '@earendil-works/pi-tui';
+import type { BarConfig } from './config.ts';
 import { layout, renderLine, type Segment } from './layout.ts';
 import { PALETTE, stripAnsi } from './palette.ts';
-
-/** Beyond this the catch-all row becomes a wall of text rather than a status line. */
-const MAX_STATUS_ITEMS = 6;
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
@@ -38,7 +36,9 @@ export interface Bar {
   dispose(): void;
 }
 
-export function createBar(tui: TUI): Bar {
+export function createBar(tui: TUI, config: BarConfig): Bar {
+  layout.styles = config.style === 'mixed' ? ['block', 'flat', 'flat'] : [config.style, config.style, config.style];
+
   let spinnerFrame = 0;
   let spinnerTimer: ReturnType<typeof setInterval> | null = null;
   let streaming = false;
@@ -71,6 +71,9 @@ export function createBar(tui: TUI): Bar {
     return '';
   };
 
+  /** A segment that a config switch can remove; disabled segments never reach the row. */
+  const keep = (enabled: boolean, segment: Segment): Segment[] => (enabled ? [segment] : []);
+
   const buildLines = (ctx: ExtensionContext, footerData: ReadonlyFooterDataProvider): Segment[][] => {
     const branch = footerData.getGitBranch();
     const model = ctx.model?.id ?? 'no model';
@@ -92,60 +95,60 @@ export function createBar(tui: TUI): Bar {
 
     // Line 1 — what the agent is doing right now.
     const working: Segment[] = [
-      {
+      ...keep(config.segments.activity, {
         text: activityText(),
         fg: PALETTE.activityFg,
         flatFg: PALETTE.inkTeal,
         bg: PALETTE.activity,
         collapse: 5,
         collapsed: frame(),
-      },
-      {
+      }),
+      ...keep(config.segments.model, {
         text: model,
         fg: PALETTE.text,
         flatFg: PALETTE.inkBlue,
         bg: PALETTE.model,
         collapse: 3,
         collapsed: model.split('/').pop() ?? model,
-      },
-      {
+      }),
+      ...keep(config.segments.thinking, {
         text: thinking === '' ? 'think:off' : thinking,
         fg: PALETTE.text,
         flatFg: PALETTE.inkTeal,
         bg: PALETTE.thinking,
         collapse: 2,
-      },
-      {
+      }),
+      ...keep(config.segments.context, {
         text: percent === null ? '--' : `${Math.round(percent)}%`,
         fg: PALETTE.text,
         flatFg: contextInk,
         bg: contextBg,
         collapse: 4,
-      },
+      }),
     ];
 
     // Line 2 — where the work is happening.
     const place: Segment[] = [
-      {
+      ...keep(config.segments.cwd, {
         text: `\u{F07B} ${dirName}`,
         fg: PALETTE.text,
         flatFg: PALETTE.inkText,
         bg: PALETTE.dir,
         collapse: 1,
-      },
-      {
+      }),
+      ...keep(config.segments.branch, {
         text: branch ? `\u{E0A0} ${branch}` : '',
         fg: PALETTE.text,
         flatFg: PALETTE.inkGreen,
         bg: PALETTE.gitClean,
-      },
+      }),
     ];
 
     // Line 3 — the catch-all: anything the two rows above did not claim. A status often
     // repeats its own key and carries its own colours, so both are normalised away here:
     // the key is dropped when the value already says it, and the palette wins.
-    const reported: Segment[] = [...footerData.getExtensionStatuses().entries()]
-      .slice(0, MAX_STATUS_ITEMS)
+    const statusSegments: Segment[] = [...footerData.getExtensionStatuses().entries()]
+      .slice(0, config.maxStatusItems)
       .map(([key, text]) => {
         const value = stripAnsi(text);
         const keyRoot = key.toLowerCase().split(/[-_.\s]/)[0] ?? key.toLowerCase();
@@ -164,6 +167,8 @@ export function createBar(tui: TUI): Bar {
         };
       });
 
+    const reported: Segment[] = config.segments.statuses ? [...statusSegments] : [];
+
     const extra = (prefix: string, text: string): Segment => ({
       text,
       prefix,
@@ -174,10 +179,11 @@ export function createBar(tui: TUI): Bar {
       collapse: 0,
     });
 
-    if (usage?.tokens != null) reported.push(extra('ctx', `${compact(usage.tokens)}/${compact(usage.contextWindow)}`));
+    if (config.segments.tokens && usage?.tokens != null)
+      reported.push(extra('ctx', `${compact(usage.tokens)}/${compact(usage.contextWindow)}`));
 
     const providers = footerData.getAvailableProviderCount();
-    if (providers > 1) reported.push(extra('providers', String(providers)));
+    if (config.segments.providers && providers > 1) reported.push(extra('providers', String(providers)));
 
     return [working, place, reported];
   };

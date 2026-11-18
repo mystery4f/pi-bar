@@ -46,5 +46,8 @@
     "@types/node": "^26.6.6",
     "typescript": "^7.0.2",
     "vitest": "^5.1.1"
+  },
+  "dependencies": {
+    "smol-toml": "^1.9.1"
   }
 }

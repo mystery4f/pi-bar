@@ -4,15 +4,21 @@
  */
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { type Bar, createBar } from './bar.ts';
+import { applyColors, loadConfig } from './config.ts';
 
 export default function piBar(pi: ExtensionAPI): void {
   let bar: Bar | null = null;
 
   pi.on('session_start', (_event, ctx) => {
     if (!ctx.hasUI) return;
+
+    const { config, warnings } = loadConfig();
+    applyColors(config);
+    for (const warning of warnings) ctx.ui.notify(`pi-bar: ${warning}`, 'warning');
+
     ctx.ui.setWorkingVisible(false);
     ctx.ui.setFooter((tui, _theme, footerData) => {
-      const created = createBar(tui);
+      const created = createBar(tui, config);
       bar = created;
       return {
         dispose() {

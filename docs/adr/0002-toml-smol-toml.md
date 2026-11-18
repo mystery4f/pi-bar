@@ -24,3 +24,10 @@ object against a small TypeScript schema; unknown keys are reported once and ign
 
 `smol-toml` becomes the first runtime dependency of the package. `pi install` resolves npm
 dependencies, so this is invisible to the user.
+
+## Where the file lives
+
+One file, `~/.pi/agent/pi-bar.toml`, with no project-level overlay: a status bar is a
+personal view of the agent, so per-repository variants would answer a question nobody
+asked and would double the loading rules. `PI_BAR_CONFIG` overrides the path, exists so a
+test never reads the developer's own file.

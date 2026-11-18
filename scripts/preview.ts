@@ -37,6 +37,7 @@ const ctx: any = {
   getContextUsage: () => ({ tokens: 118000, contextWindow: 200000, percent: 59 }),
   ui: {
     setWorkingVisible() {},
+    notify() {},
     setFooter(factory: any) {
       footerFactory = factory;
     },
