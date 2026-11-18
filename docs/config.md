@@ -69,6 +69,12 @@ with no usage (an abort) is left out entirely, and a total under 50ms reports no
 dividing by a tick. `PI_BAR_DEBUG_RATES=1` prints the prompt tokens, the output tokens and the
 duration of each finished request to stderr.
 
+`rate.window` — how much history the rates average over, in whole seconds from `0` to `120`.
+`0`, the default, averages the whole session. A window follows a burst instead of the session, so
+the figure moves; a request counts whole or not at all, since its token count cannot be sliced,
+and one that started before the window opened is left out rather than divided by the part of its
+time that falls inside.
+
 `statuses.max_items` — how many extension statuses the third row may show, default `6`.
 The row keeps the leftmost ones and drops the rest.
 

@@ -75,7 +75,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   let spinnerTimer: ReturnType<typeof setInterval> | null = null;
   let streaming = false;
   const activeTools = new Map<string, string>();
-  const rates = createRateMeter(logRateSample);
+  const rates = createRateMeter({ windowMs: config.rateWindowSeconds * 1000, onSample: logRateSample });
   let changes: ChangeCounts = { insertions: 0, deletions: 0 };
 
   const requestRender = (): void => {

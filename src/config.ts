@@ -33,6 +33,8 @@ export interface BarConfig {
   style: BarStyle;
   segments: SegmentToggles;
   maxStatusItems: number;
+  /** Seconds of history the rates average over; 0 means the whole session. */
+  rateWindowSeconds: number;
   colors: Partial<Record<keyof typeof PALETTE, RGB>>;
 }
 
@@ -52,6 +54,7 @@ export const DEFAULT_CONFIG: BarConfig = {
     providers: true,
   },
   maxStatusItems: 6,
+  rateWindowSeconds: 0,
   colors: {},
 };
 
@@ -63,6 +66,9 @@ export const configPath = (): string =>
   process.env.PI_BAR_CONFIG?.trim() || join(homedir(), '.pi', 'agent', 'pi-bar.toml');
 
 const styles = ['mixed', 'chips', 'block', 'flat'] as const;
+
+/** Upper bound for `rate.window`: a longer window says nothing a session average does not. */
+const MAX_RATE_WINDOW_SECONDS = 120;
 
 /** `#rrggbb` only: a named terminal colour would not survive the truecolour escapes we emit. */
 const parseHex = (value: string): RGB | undefined => {
@@ -115,6 +121,14 @@ export function readConfig(raw: unknown, warn: (message: string) => void = () =>
     const value = statuses.max_items;
     if (typeof value === 'number' && Number.isInteger(value) && value >= 0) config.maxStatusItems = value;
     else warn('statuses.max_items: expected a whole number of 0 or more');
+  }
+
+  const rate = raw.rate;
+  if (isRecord(rate) && rate.window !== undefined) {
+    const value = rate.window;
+    if (typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= MAX_RATE_WINDOW_SECONDS)
+      config.rateWindowSeconds = value;
+    else warn(`rate.window: expected a whole number of seconds from 0 to ${MAX_RATE_WINDOW_SECONDS}`);
   }
 
   const colors = raw.colors;
@@ -183,7 +197,7 @@ activity = true   # spinner and running tool names
 model = true      # model name
 thinking = true   # thinking level
 context = true    # context percentage
-rates = true      # in/out tokens per second from the last request
+rates = true      # in/out tokens per second over the session
 cwd = true        # working directory
 branch = true     # git branch
 changes = true    # +added / -removed lines in the working tree
@@ -194,6 +208,11 @@ providers = true  # provider count, only shown above one
 [statuses]
 # How many extension statuses the third row may show.
 max_items = 6
+
+[rate]
+# Seconds of history the rates average over, 0-120. 0 (default) averages the whole session.
+# A window follows a burst instead of the session, at the cost of a reading that moves.
+window = 0
 
 [colors]
 # \`#rrggbb\` overrides, e.g. model = "#005b95". Palette names: text, dim, sep,

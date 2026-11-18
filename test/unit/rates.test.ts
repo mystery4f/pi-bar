@@ -73,9 +73,27 @@ it('never opens a window for a non-assistant message', () => {
 
 it('hands the raw measurement to the debug hook', () => {
   const samples: RateSample[] = [];
-  const meter = createRateMeter((sample) => samples.push(sample));
+  const meter = createRateMeter({ onSample: (sample) => samples.push(sample) });
   meter.begin('assistant', 0);
   meter.end('assistant', { input: 20_000, output: 400 }, 2600);
 
   expect(samples).toEqual([{ inputTokens: 20_000, outputTokens: 400, durationMs: 2600 }]);
+});
+
+it('averages only the requests started inside the window', () => {
+  const meter = createRateMeter({ windowMs: 2000 });
+  meter.begin('assistant', 0);
+  meter.end('assistant', { input: 10_000, output: 100 }, 1000);
+  meter.begin('assistant', 1000);
+  const rates = meter.end('assistant', { input: 20_000, output: 200 }, 3000);
+
+  // The first request began before the window opened, so only the second one describes now.
+  expect(rates).toEqual({ input: 10_000, output: 100 });
+});
+
+it('drops a request older than the window instead of slicing its time', () => {
+  const meter = createRateMeter({ windowMs: 1000 });
+  meter.begin('assistant', 0);
+
+  expect(meter.end('assistant', { input: 10_000, output: 1000 }, 3000)).toBeUndefined();
 });

@@ -5,7 +5,7 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import piBar from '../../src/index.ts';
 import { createHarness, type Harness, stripAnsi } from '../support/fake-pi.ts';
 
@@ -83,4 +83,28 @@ it('sends the quiet rows slate instead of green in chips style', () => {
 
   expect(place).toContain('48;2;59;66;97');
   expect(place).not.toContain('48;2;0;107;29');
+});
+
+it('averages only the configured rate window', () => {
+  vi.useFakeTimers();
+  const harness = install(`
+[rate]
+window = 1
+`);
+
+  const first = { role: 'assistant' };
+  harness.emit('message_start', { message: first });
+  vi.advanceTimersByTime(1000);
+  harness.emit('message_end', { message: { ...first, usage: { input: 10_000, output: 100 } } });
+
+  const second = { role: 'assistant' };
+  harness.emit('message_start', { message: second });
+  vi.advanceTimersByTime(1000);
+  harness.emit('message_end', { message: { ...second, usage: { input: 20_000, output: 200 } } });
+
+  // The first request began before the one-second window, so only the second one is averaged.
+  const working = harness.plain(150).rows[0] ?? '';
+  expect(working).toContain('in 20k t/s');
+  expect(working).toContain('out 200 t/s');
+  vi.useRealTimers();
 });
