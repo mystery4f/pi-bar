@@ -79,10 +79,20 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   /** A segment that a config switch can remove; disabled segments never reach the row. */
   const keep = (enabled: boolean, segment: Segment): Segment[] => (enabled ? [segment] : []);
 
+  /** Rates read as `310/s`, `240 k/s`, `1.2 M/s` — lower-case unit, spaced off the number. */
+  const rateText = (perSecond: number): string => {
+    if (perSecond < 1000) return `${compact(perSecond)}/s`;
+
+    const thousands = perSecond / 1000;
+    if (thousands < 1000) return `${Math.round(thousands)} k/s`;
+
+    return `${(thousands / 1000).toFixed(1).replace(/\.0$/, '')} M/s`;
+  };
+
   /** One phase of the last request, in tokens per second. */
   const rateSegment = (prefix: string, perSecond: number): Segment => ({
     prefix,
-    text: `${compact(perSecond)}/s`,
+    text: rateText(perSecond),
     prefixFg: PALETTE.dim,
     fg: PALETTE.text,
     flatFg: PALETTE.inkYellow,

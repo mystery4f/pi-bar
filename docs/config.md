@@ -47,7 +47,7 @@ bottom; `block` and `flat` paint all three rows the same way.
 | `model` | the model name |
 | `thinking` | the thinking level (`think:off` when unset) |
 | `context` | the context percentage |
-| `rates` | `in 40K/s out 200/s` from the last request |
+| `rates` | `in 40 k/s out 200/s` from the last request |
 | `cwd` | the working directory on the second row |
 | `branch` | the git branch on the second row |
 | `statuses` | extension statuses on the third row |

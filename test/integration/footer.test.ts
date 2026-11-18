@@ -120,7 +120,7 @@ it('shows in and out rates on the working row after a request', () => {
 
   // 20K prompt read in 500ms, 400 output tokens over 2s of streaming.
   const working = bar.plain(150).rows[0] ?? '';
-  expect(working).toContain('in 40K/s');
+  expect(working).toContain('in 40 k/s');
   expect(working).toContain('out 200/s');
   vi.useRealTimers();
 });
