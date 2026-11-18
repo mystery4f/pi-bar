@@ -4,7 +4,7 @@
  */
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { type Bar, createBar } from './bar.ts';
-import { applyColors, loadConfig } from './config.ts';
+import { applyColors, ensureConfigFile, loadConfig } from './config.ts';
 
 export default function piBar(pi: ExtensionAPI): void {
   let bar: Bar | null = null;
@@ -12,6 +12,7 @@ export default function piBar(pi: ExtensionAPI): void {
   pi.on('session_start', (_event, ctx) => {
     if (!ctx.hasUI) return;
 
+    ensureConfigFile();
     const { config, warnings } = loadConfig();
     applyColors(config);
     for (const warning of warnings) ctx.ui.notify(`pi-bar: ${warning}`, 'warning');

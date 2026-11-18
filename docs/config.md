@@ -5,8 +5,10 @@ description: The pi-bar.toml keys, what each one changes, and how a broken file 
 
 # Configuration
 
-pi-bar reads one optional file, `~/.pi/agent/pi-bar.toml`, at session start. No file means
-the defaults below; restart pi after an edit, because the file is read once per session.
+pi-bar reads one optional file, `~/.pi/agent/pi-bar.toml`, at session start. On first run
+the plugin writes a fully commented default file there, so every key is discoverable
+without reading this page; an existing file is never touched. Restart pi after an edit,
+because the file is read once per session.
 
 The file is deliberately small: it turns rows and segments off, picks a row style and
 repaints the palette. Anything it cannot express is out of scope until a key for it exists.

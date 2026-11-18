@@ -2,11 +2,11 @@
  * The config reader is the only place a user's file can hurt the bar: every test here
  * asserts that a bad input leaves a usable config behind, not an exception.
  */
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
-import { DEFAULT_CONFIG, loadConfig, readConfig } from '../../src/config.ts';
+import { DEFAULT_CONFIG, ensureConfigFile, loadConfig, readConfig, TEMPLATE } from '../../src/config.ts';
 
 const writeConfig = (body: string): string => {
   const path = join(mkdtempSync(join(tmpdir(), 'pi-bar-config-')), 'pi-bar.toml');
@@ -85,4 +85,20 @@ it('ignores values of the wrong shape', () => {
 
   expect(config.maxStatusItems).toBe(DEFAULT_CONFIG.maxStatusItems);
   expect(config.segments.cwd).toBe(true);
+});
+
+it('writes the template on first run and reads it back as the defaults', () => {
+  const path = join(mkdtempSync(join(tmpdir(), 'pi-bar-config-')), 'nested', 'pi-bar.toml');
+
+  ensureConfigFile(path);
+  expect(readFileSync(path, 'utf8')).toBe(TEMPLATE);
+  expect(loadConfig(path)).toEqual({ config: DEFAULT_CONFIG, warnings: [] });
+});
+
+it('never overwrites a file the user already edited', () => {
+  const path = writeConfig('[segments]\ncwd = false\n');
+
+  ensureConfigFile(path);
+
+  expect(readFileSync(path, 'utf8')).toBe('[segments]\ncwd = false\n');
 });

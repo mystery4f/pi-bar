@@ -6,9 +6,9 @@
  * that is missing is normal (defaults), a file that is broken is reported and skipped, so
  * a bad edit never leaves the bar blank.
  */
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { parse } from 'smol-toml';
 import type { LineStyle } from './layout.ts';
 import { PALETTE, type RGB } from './palette.ts';
@@ -164,4 +164,45 @@ export function loadConfig(path: string = configPath()): LoadResult {
 /** Paint the palette from the config; called once, before the first render. */
 export function applyColors(config: BarConfig): void {
   Object.assign(PALETTE, config.colors);
+}
+
+/** The file a fresh install gets, commented so every key is discoverable by reading it. */
+export const TEMPLATE = `# pi-bar settings. Restart pi after an edit — the file is read once per session.
+
+[layout]
+# mixed: block, flat, flat top to bottom. Or "block" / "flat" for all three rows.
+style = "mixed"
+
+[segments]
+activity = true   # spinner and running tool names
+model = true      # model name
+thinking = true   # thinking level
+context = true    # context percentage
+cwd = true        # working directory
+branch = true     # git branch
+statuses = true   # extension statuses on the third row
+tokens = true     # ctx 125K/1M on the third row
+providers = true  # provider count, only shown above one
+
+[statuses]
+# How many extension statuses the third row may show.
+max_items = 6
+
+[colors]
+# \`#rrggbb\` overrides, e.g. model = "#005b95". Palette names: text, dim, sep,
+# inkText, inkBlue, inkTeal, inkGreen, inkYellow, inkRed, model, thinking, dir,
+# activity, activityFg, gitClean, ok, warn, alert.
+`;
+
+/**
+ * Create the default file on first run so the keys are discoverable. An existing file is
+ * never touched, and a path that cannot be written is ignored: the bar works without it.
+ */
+export function ensureConfigFile(path: string = configPath()): void {
+  try {
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, TEMPLATE, { flag: 'wx' });
+  } catch {
+    // Either the file is already there or the directory is read-only; both are fine.
+  }
 }
