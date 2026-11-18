@@ -8,7 +8,10 @@
 import type { ExtensionContext, ReadonlyFooterDataProvider } from '@earendil-works/pi-coding-agent';
 import type { TUI } from '@earendil-works/pi-tui';
 import { layout, renderLine, type Segment } from './layout.ts';
-import { PALETTE } from './palette.ts';
+import { PALETTE, stripAnsi } from './palette.ts';
+
+/** Beyond this the catch-all row becomes a wall of text rather than a status line. */
+const MAX_STATUS_ITEMS = 6;
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 
@@ -138,16 +141,28 @@ export function createBar(tui: TUI): Bar {
       },
     ];
 
-    // Line 3 — the catch-all: anything the two rows above did not claim.
-    const reported: Segment[] = [...footerData.getExtensionStatuses().entries()].map(([key, text]) => ({
-      text,
-      prefix: key,
-      prefixFg: PALETTE.dim,
-      fg: PALETTE.activityFg,
-      flatFg: PALETTE.inkTeal,
-      bg: PALETTE.activity,
-      collapse: 0,
-    }));
+    // Line 3 — the catch-all: anything the two rows above did not claim. A status often
+    // repeats its own key and carries its own colours, so both are normalised away here:
+    // the key is dropped when the value already says it, and the palette wins.
+    const reported: Segment[] = [...footerData.getExtensionStatuses().entries()]
+      .slice(0, MAX_STATUS_ITEMS)
+      .map(([key, text]) => {
+        const value = stripAnsi(text);
+        const keyRoot = key.toLowerCase().split(/[-_.\s]/)[0] ?? key.toLowerCase();
+        const repeatsKey =
+          value.toLowerCase().includes(key.toLowerCase()) ||
+          (keyRoot.length >= 3 && value.toLowerCase().startsWith(keyRoot));
+
+        return {
+          text: value,
+          ...(repeatsKey ? {} : { prefix: key }),
+          prefixFg: PALETTE.dim,
+          fg: PALETTE.activityFg,
+          flatFg: PALETTE.inkTeal,
+          bg: PALETTE.activity,
+          collapse: 1,
+        };
+      });
 
     const extra = (prefix: string, text: string): Segment => ({
       text,

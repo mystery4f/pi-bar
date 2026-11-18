@@ -187,6 +187,22 @@ statuses = new Map([
 ]);
 shot('三个状态键', 150);
 shot('三个状态键 · 60 列', 60);
+// The crowded case that came out of a real session: eight status texts, many of which
+// repeat their own key and carry their own colours.
+statuses = new Map([
+  ['audit', '\u25CB'],
+  ['mcp', '\u{1F50C} MCP: 12 servers enabled'],
+  ['fzf-files', 'fzf: 124 entries'],
+  ['ponytail', '\u25CF \u{1F434} ponytail: \u{1F525} ULTRA'],
+  ['pi-cache-stats', '\u00B7 DS cache 447/463\u00B743.2M/45.5M 95.0%'],
+  ['pi-ide', '\u25C6'],
+  ['lsp', 'LSP: idle'],
+  ['langfuse', 'langfuse: off (no keys)'],
+]);
+ctx.getContextUsage = () => ({ tokens: 125058, contextWindow: 1048576, percent: 11.9 });
+shot('真实会话 · 209 列', 209);
+shot('真实会话 · 120 列', 120);
+ctx.getContextUsage = () => ({ tokens: 118000, contextWindow: 200000, percent: 59 });
 statuses = new Map();
 shot('没有状态键', 150);
 component.dispose();
