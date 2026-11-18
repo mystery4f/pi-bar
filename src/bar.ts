@@ -77,6 +77,9 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   const activeTools = new Map<string, string>();
   const rates = createRateMeter({ windowMs: config.rateWindowSeconds * 1000, onSample: logRateSample });
   let changes: ChangeCounts = { files: 0, insertions: 0, deletions: 0 };
+  let turnStartedAt: number | null = null;
+  let lastTurnMs: number | null = null;
+  let clockTimer: ReturnType<typeof setInterval> | null = null;
 
   const requestRender = (): void => {
     tui.requestRender();
@@ -94,6 +97,21 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     if (spinnerTimer === null) return;
     clearInterval(spinnerTimer);
     spinnerTimer = null;
+  };
+  /** The elapsed segment counts seconds, so one repaint a second keeps it honest. */
+  const startClock = (): void => {
+    if (clockTimer !== null) return;
+
+    clockTimer = setInterval(() => {
+      requestRender();
+    }, 1000);
+  };
+
+  const stopClock = (): void => {
+    if (clockTimer === null) return;
+
+    clearInterval(clockTimer);
+    clockTimer = null;
   };
 
   const frame = (): string => SPINNER[spinnerFrame] ?? '';
@@ -115,6 +133,18 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     return `${(perSecond / 1000).toFixed(1).replace(/\.0$/, '')}k t/s`;
   };
 
+  /** Turn time reads as `12s` under a minute and `1m05s` above it. */
+  const durationText = (ms: number): string => {
+    const seconds = Math.floor(ms / 1000);
+
+    if (seconds < 60) return `${seconds}s`;
+
+    return `${Math.floor(seconds / 60)}m${String(seconds % 60).padStart(2, '0')}s`;
+  };
+
+  /** Time the current turn has been running, or how long the last one took. */
+  const elapsedMs = (): number | null => (turnStartedAt === null ? lastTurnMs : Date.now() - turnStartedAt);
+
   /** Session throughput, in tokens per second. */
   const rateSegment = (prefix: string, perSecond: number): Segment => ({
     prefix,
@@ -132,6 +162,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     const thinking = ctx.thinkingLevel ?? '';
     const usage = ctx.getContextUsage();
     const percent = usage?.percent ?? null;
+    const elapsed = elapsedMs();
     const dirName = ctx.cwd.split(/[\\/]/).filter(Boolean).pop() ?? ctx.cwd;
 
     const contextBg =
@@ -177,6 +208,13 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         flatFg: contextInk,
         bg: contextBg,
         collapse: 4,
+      }),
+      ...keep(config.segments.elapsed && (elapsed ?? 0) > 0, {
+        text: durationText(elapsed ?? 0),
+        fg: PALETTE.text,
+        flatFg: PALETTE.dim,
+        bg: PALETTE.dir,
+        collapse: 3,
       }),
       ...(rate?.input === undefined ? [] : [rateSegment('in', rate.input)]),
       ...(rate?.output === undefined ? [] : [rateSegment('out', rate.output)]),
@@ -290,12 +328,18 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     },
     turnStart() {
       streaming = true;
+      turnStartedAt = Date.now();
+      lastTurnMs = null;
       startSpinner();
+      startClock();
       requestRender();
     },
     turnEnd() {
       streaming = false;
+      lastTurnMs = turnStartedAt === null ? lastTurnMs : Date.now() - turnStartedAt;
+      turnStartedAt = null;
       stopSpinner();
+      stopClock();
       requestRender();
     },
     toolStart(toolCallId, toolName) {

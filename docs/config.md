@@ -21,6 +21,7 @@ style = "mixed"          # mixed | chips | block | flat
 
 [segments]
 rates = true
+elapsed = true
 cwd = true
 branch = true
 statuses = true
@@ -51,6 +52,7 @@ a slate background, so the family matches without the bottom rows competing. `bl
 | `thinking` | the thinking level (`think:off` when unset) |
 | `context` | the context percentage |
 | `rates` | `in 8k t/s out 160 t/s`, the session's token throughput |
+| `elapsed` | `12s`, how long the current turn has run (`1m05s` past a minute); the last turn's time stays on screen after it ends |
 | `cwd` | the working directory on the second row |
 | `branch` | the git branch on the second row |
 | `changes` | `1 file` `+12` `-3`, the working tree beside the branch: the changed-file count, then the line counts as two touching chips, a green tint for added lines and a red one for removed |

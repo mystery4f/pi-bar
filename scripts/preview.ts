@@ -182,6 +182,8 @@ emit('turn_end', {}, ctx);
 
 // Streaming with no tool yet: the turn has started, the model is thinking.
 emit('turn_start', {});
+// Let the turn timer tick once, so the preview shows an elapsed figure instead of nothing.
+await new Promise((resolve) => setTimeout(resolve, 1200));
 shot('思考中', 150);
 shot('思考中 · 45 列', 45);
 

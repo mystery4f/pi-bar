@@ -21,6 +21,7 @@ export interface SegmentToggles {
   thinking: boolean;
   context: boolean;
   rates: boolean;
+  elapsed: boolean;
   cwd: boolean;
   branch: boolean;
   changes: boolean;
@@ -46,6 +47,7 @@ export const DEFAULT_CONFIG: BarConfig = {
     thinking: true,
     context: true,
     rates: true,
+    elapsed: true,
     cwd: true,
     branch: true,
     changes: true,
@@ -198,6 +200,7 @@ model = true      # model name
 thinking = true   # thinking level
 context = true    # context percentage
 rates = true      # in/out tokens per second over the session
+elapsed = true    # how long the current (or last) turn took
 cwd = true        # working directory
 branch = true     # git branch
 changes = true    # +added / -removed lines in the working tree

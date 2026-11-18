@@ -27,6 +27,32 @@ it('renders the three rows in order, working row first', () => {
   expect(bar.rows[2]).toContain('ctx');
 });
 
+it('counts the current turn and keeps the final time afterwards', () => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  const bar = install();
+
+  vi.setSystemTime(0);
+  bar.emit('turn_start');
+  vi.setSystemTime(12_000);
+
+  expect(bar.plain(150).rows[0]).toContain(' 12s ');
+
+  bar.emit('turn_end');
+  vi.setSystemTime(90_000);
+
+  expect(bar.plain(150).rows[0]).toContain(' 12s ');
+});
+
+it('reads a long turn as minutes and seconds', () => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  const bar = install();
+
+  vi.setSystemTime(0);
+  bar.emit('turn_start');
+  vi.setSystemTime(95_000);
+
+  expect(bar.plain(150).rows[0]).toContain(' 1m35s ');
+});
 it('drops the report row when nothing falls through to it', () => {
   const bar = install({ tokens: null }).plain(150);
 
