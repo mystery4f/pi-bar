@@ -60,11 +60,22 @@ export function visualWidth(input: string): number {
   return width;
 }
 
+/**
+ * A row is one terminal line, so a stray newline or tab inside segment text would draw a
+ * line the layout never counted — it shows up as unexplained blank space under the bar.
+ * pi's own footer sanitises status text for the same reason.
+ */
+const singleLine = (text: string): string =>
+  text
+    .replace(/[\r\n\t]/g, ' ')
+    .replace(/ {2,}/g, ' ')
+    .trimEnd();
+
 /** One segment's text, prefix first, with no background of its own. */
 const segmentText = (segment: Segment, color: RGB): string =>
-  (segment.prefix === undefined ? '' : `${fg(segment.prefixFg ?? PALETTE.dim)}${segment.prefix} `) +
+  (segment.prefix === undefined ? '' : `${fg(segment.prefixFg ?? PALETTE.dim)}${singleLine(segment.prefix)} `) +
   fg(color) +
-  segment.text;
+  singleLine(segment.text);
 
 const blockLine = (list: readonly Segment[]): string => {
   const first = list[0];
@@ -91,7 +102,7 @@ const flatLine = (list: readonly Segment[]): string =>
 export function renderLine(segments: readonly Segment[], width: number, style: LineStyle): string {
   const draw = (list: readonly Segment[]): string => (style === 'block' ? blockLine(list) : flatLine(list));
   const show = (list: readonly Segment[]): string => {
-    const usable = list.filter((segment) => segment.text.length > 0);
+    const usable = list.filter((segment) => singleLine(segment.text).length > 0);
     return usable.length === 0 ? '' : `${draw(usable)}${RESET}`;
   };
 

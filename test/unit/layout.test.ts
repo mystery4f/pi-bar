@@ -42,6 +42,13 @@ describe('renderLine flat', () => {
     expect(line).toBe(' kept ');
   });
 
+  it('keeps multi-line status text on one line', () => {
+    const line = stripAnsi(renderLine([segment('two\nlines\there')], 80, 'flat'));
+
+    expect(line).not.toContain('\n');
+    expect(line).toBe(' two lines here ');
+  });
+
   it('returns an empty string when every segment is empty', () => {
     expect(renderLine([segment('')], 80, 'flat')).toBe('');
   });
