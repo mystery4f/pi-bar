@@ -118,14 +118,14 @@ it('shows in and out rates on the working row after a request', () => {
   vi.advanceTimersByTime(2000);
   bar.emit('message_end', { message: { ...message, usage: { input: 20_000, output: 400 } } });
 
-  // 20K prompt read in 500ms, 400 output tokens over 2s of streaming.
+  // 20K prompt and 400 output tokens over the 2.5s the request took: one window, two halves.
   const working = bar.plain(150).rows[0] ?? '';
-  expect(working).toContain('in 40 k/s');
-  expect(working).toContain('out 200/s');
+  expect(working).toContain('in 8k t/s');
+  expect(working).toContain('out 160 t/s');
   vi.useRealTimers();
 });
 
-it('keeps the prefill half when a request never streamed a token', () => {
+it('times the whole wait, so a request that never streamed still reports both halves', () => {
   vi.useFakeTimers();
   const bar = install();
   const message = { role: 'assistant' };
@@ -135,9 +135,9 @@ it('keeps the prefill half when a request never streamed a token', () => {
   bar.emit('message_end', { message: { ...message, usage: { input: 20_000, output: 400 } } });
   bar.emit('turn_end');
 
-  // No token arrived mid-request, so there is no generation window to divide the output by.
-  expect(bar.plain(150).rows[0] ?? '').toContain('in 20 k/s');
-  expect(bar.plain(150).rows[0] ?? '').not.toContain('out');
+  const working = bar.plain(150).rows[0] ?? '';
+  expect(working).toContain('in 20k t/s');
+  expect(working).toContain('out 400 t/s');
   vi.useRealTimers();
 });
 

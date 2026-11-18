@@ -58,6 +58,5 @@ export default function piBar(pi: ExtensionAPI): void {
     bar?.updateChanges(ctx.cwd);
   });
   pi.on('message_start', (event) => bar?.messageStart(event.message.role));
-  pi.on('message_update', (event) => bar?.messageToken(event.message.role));
   pi.on('message_end', (event) => bar?.messageEnd(event.message.role, usageOf(event.message)));
 }

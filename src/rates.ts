@@ -1,109 +1,98 @@
 /**
- * Token throughput, split into the two phases a request actually has.
+ * Token throughput over the session, measured against the wall clock the requests actually took.
  *
- * Prefill is a burst: the whole prompt is read before the first token appears, so its rate is
- * prompt tokens over the wait for that first token. Generation is a stream, so its rate is output
- * tokens over the time between the first and the last token. Averaging both over the whole request
- * would report one meaningless number, which is why the bar shows them side by side.
+ * A request is not one speed: the prompt is read before the first token, then the answer streams.
+ * Timing those phases separately multiplies figures nobody can compare — a provider that answers in
+ * one packet reports a huge prefill and an invented generation rate. So both halves share one
+ * window, the wait from the end of the previous message to the end of this answer, and the totals
+ * accumulate across the session. Tokens over elapsed time is the number that stays comparable as
+ * models, providers and request sizes change.
  */
 export interface TokenUsage {
   input: number;
   output: number;
+  /** Cached prompt tokens: tracked by the caller, never counted as new prompt work here. */
   cacheRead?: number;
   cacheWrite?: number;
 }
 
-/** Either half may be missing: a phase whose window could not be measured is not reported. */
+/** Either half stays missing while the session has not produced that kind of token. */
 export interface RateSnapshot {
   input?: number;
   output?: number;
 }
 
-/** One request as it was measured, for `PI_BAR_DEBUG_RATES` — the numbers behind the bar. */
+/** What one closed request contributed, for `PI_BAR_DEBUG_RATES` — the numbers behind the bar. */
 export interface RateSample {
-  prompt: number;
-  output: number;
-  prefillMs: number;
-  streamMs: number;
+  inputTokens: number;
+  outputTokens: number;
+  durationMs: number;
 }
 
-/**
- * A window this short cannot carry a throughput number. When a provider answers in one packet the
- * first and the last token land in the same tick, and dividing by that tick would invent a rate —
- * the source of the implausible `out` figures a buffered stream produces.
- */
+/** What the rates are divided by, accumulated across the session. */
+export interface RateTotals {
+  inputTokens: number;
+  outputTokens: number;
+  durationMs: number;
+}
+
+/** A total this short is a tick rather than a measurement; dividing by it invents a speed. */
 const MIN_WINDOW_MS = 50;
 
-const promptOf = (usage: TokenUsage): number => usage.input + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0);
-
 const perSecond = (tokens: number, milliseconds: number): number | undefined => {
-  if (tokens <= 0 || milliseconds < MIN_WINDOW_MS) return undefined;
+  if (tokens <= 0) return undefined;
 
   return Math.round(tokens / (milliseconds / 1000));
 };
 
-/**
- * Rates from one finished assistant message. Each half stands on its own window: a phase that was
- * never timed is left out instead of borrowing the other window's time.
- */
-export const ratesFrom = (
-  usage: TokenUsage | undefined,
-  prefillMs: number,
-  streamMs: number,
-): RateSnapshot | undefined => {
-  if (usage === undefined) return undefined;
+/** Session-average throughput: the same denominator for both halves, by design. */
+export const ratesFrom = (totals: RateTotals): RateSnapshot | undefined => {
+  if (totals.durationMs < MIN_WINDOW_MS) return undefined;
 
-  const input = perSecond(promptOf(usage), prefillMs);
-  const output = perSecond(usage.output, streamMs);
+  const input = perSecond(totals.inputTokens, totals.durationMs);
+  const output = perSecond(totals.outputTokens, totals.durationMs);
   if (input === undefined && output === undefined) return undefined;
 
   return { ...(input === undefined ? {} : { input }), ...(output === undefined ? {} : { output }) };
 };
 
 export interface RateMeter {
-  /** The agent started a message; only assistant messages are timed. */
+  /** A message started; an assistant reply opens a window at the end of the previous message. */
   begin(role: string, now: number): void;
-  /** The first streamed token arrived, ending prefill and starting the generation window. */
-  firstToken(role: string, now: number): void;
-  /** The message finished; the returned snapshot replaces the previous one. */
+  /** A message finished: another role only moves the anchor, an assistant reply closes the window. */
   end(role: string, usage: TokenUsage | undefined, now: number): RateSnapshot | undefined;
   readonly current: RateSnapshot | undefined;
 }
 
 export const createRateMeter = (onSample?: (sample: RateSample) => void): RateMeter => {
-  let startedAt: number | null = null;
-  let firstTokenAt: number | null = null;
+  // Where the next assistant window can start: the moment the previous message finished.
+  let anchor: number | null = null;
+  let openedAt: number | null = null;
+  const totals: RateTotals = { inputTokens: 0, outputTokens: 0, durationMs: 0 };
   let last: RateSnapshot | undefined;
 
   return {
     begin(role, now) {
       if (role !== 'assistant') return;
 
-      startedAt = now;
-      firstTokenAt = null;
-    },
-    firstToken(role, now) {
-      if (role !== 'assistant' || startedAt === null || firstTokenAt !== null) return;
-
-      firstTokenAt = now;
+      openedAt = anchor ?? now;
     },
     end(role, usage, now) {
-      if (role !== 'assistant' || startedAt === null) return last;
+      const startedAt = openedAt;
+      openedAt = null;
+      anchor = now;
 
-      const start = startedAt;
-      const first = firstTokenAt;
-      startedAt = null;
-      firstTokenAt = null;
+      // A message without usage (an abort, a failed request) contributed no tokens, so its time
+      // stays out of the totals instead of dragging the average down.
+      if (role !== 'assistant' || startedAt === null || usage === undefined) return last;
 
-      // No first token means the request never streamed: the whole wait was prefill, and there is
-      // no generation window to divide by.
-      const prefillMs = (first ?? now) - start;
-      const streamMs = first === null ? 0 : now - first;
-      if (onSample !== undefined && usage !== undefined) {
-        onSample({ prompt: promptOf(usage), output: usage.output, prefillMs, streamMs });
-      }
+      const durationMs = now - startedAt;
+      totals.inputTokens += usage.input;
+      totals.outputTokens += usage.output;
+      totals.durationMs += durationMs;
+      onSample?.({ inputTokens: usage.input, outputTokens: usage.output, durationMs });
 
-      last = ratesFrom(usage, prefillMs, streamMs) ?? last;
+      last = ratesFrom(totals) ?? last;
 
       return last;
     },

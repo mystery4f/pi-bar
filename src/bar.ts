@@ -21,7 +21,7 @@ const logRateSample = (sample: RateSample): void => {
   if (process.env.PI_BAR_DEBUG_RATES !== '1') return;
 
   console.error(
-    `pi-bar rate prompt=${sample.prompt} output=${sample.output} prefillMs=${sample.prefillMs} streamMs=${sample.streamMs}`,
+    `pi-bar rate input=${sample.inputTokens} output=${sample.outputTokens} durationMs=${sample.durationMs}`,
   );
 };
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
@@ -42,7 +42,6 @@ export interface Bar {
   turnStart(): void;
   turnEnd(): void;
   messageStart(role: string): void;
-  messageToken(role: string): void;
   messageEnd(role: string, usage: TokenUsage | undefined): void;
   toolStart(toolCallId: string, toolName: string): void;
   toolEnd(toolCallId: string): void;
@@ -109,17 +108,14 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
   /** A segment that a config switch can remove; disabled segments never reach the row. */
   const keep = (enabled: boolean, segment: Segment): Segment[] => (enabled ? [segment] : []);
 
-  /** Rates read as `310/s`, `240 k/s`, `1.2 M/s` — lower-case unit, spaced off the number. */
+  /** Rates read as `42 t/s`, `5.7k t/s` — one fixed unit, `k` only scaling the magnitude. */
   const rateText = (perSecond: number): string => {
-    if (perSecond < 1000) return `${compact(perSecond)}/s`;
+    if (perSecond < 1000) return `${perSecond} t/s`;
 
-    const thousands = perSecond / 1000;
-    if (thousands < 1000) return `${Math.round(thousands)} k/s`;
-
-    return `${(thousands / 1000).toFixed(1).replace(/\.0$/, '')} M/s`;
+    return `${(perSecond / 1000).toFixed(1).replace(/\.0$/, '')}k t/s`;
   };
 
-  /** One phase of the last request, in tokens per second. */
+  /** Session throughput, in tokens per second. */
   const rateSegment = (prefix: string, perSecond: number): Segment => ({
     prefix,
     text: rateText(perSecond),
@@ -302,9 +298,6 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     },
     messageStart(role) {
       rates.begin(role, Date.now());
-    },
-    messageToken(role) {
-      rates.firstToken(role, Date.now());
     },
     messageEnd(role, usage) {
       rates.end(role, usage, Date.now());

@@ -50,7 +50,7 @@ a slate background, so the family matches without the bottom rows competing. `bl
 | `model` | the model name |
 | `thinking` | the thinking level (`think:off` when unset) |
 | `context` | the context percentage |
-| `rates` | `in 40 k/s out 200/s` from the last request |
+| `rates` | `in 8k t/s out 160 t/s`, the session's token throughput |
 | `cwd` | the working directory on the second row |
 | `branch` | the git branch on the second row |
 | `changes` | `+12` `-3`, the working-tree line counts beside the branch: a green tint for added lines, a red one for removed, drawn as two touching chips |
@@ -61,11 +61,13 @@ a slate background, so the family matches without the bottom rows competing. `bl
 A row with no segments left is dropped, so turning off every segment of a row costs
 nothing.
 
-The rates are two independent measurements: the prompt over the wait for the first token, the
-output over the time between the first and the last token. A window shorter than 50ms, or one
-that never opened because the request did not stream, reports nothing for that half rather than
-dividing by it. `PI_BAR_DEBUG_RATES=1` prints the prompt, the output and both windows to stderr
-for each finished request.
+The rates are one measurement, not two: prompt tokens and output tokens are both divided by the
+wall clock the requests took, from the end of the previous message to the end of the answer, and
+the totals accumulate over the session. That keeps `in` and `out` comparable between providers
+and across a session that grows; cached prompt tokens are not counted as fresh work. A request
+with no usage (an abort) is left out entirely, and a total under 50ms reports nothing rather than
+dividing by a tick. `PI_BAR_DEBUG_RATES=1` prints the prompt tokens, the output tokens and the
+duration of each finished request to stderr.
 
 `statuses.max_items` — how many extension statuses the third row may show, default `6`.
 The row keeps the leftmost ones and drops the rest.
