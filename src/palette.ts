@@ -52,7 +52,6 @@ export const PALETTE = {
   inkRed: hex('#f38ba8'),
 };
 
-export const SEPARATOR_LEADING = '\uE0BA';
-export const SEPARATOR_MIDDLE = '\uE0B0';
-export const SEPARATOR_TRAILING = '\uE0BC';
+export const SEPARATOR_LEADING = '\u258C';
+export const SEPARATOR_TRAILING = '\u2590';
 export const FLAT_SEPARATOR = '\u2502';
