@@ -1,0 +1,18 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+# local plugin state (runtime data, not source)
+.pi/
+# scratch space for previews and upstream clones
+.tmp/
+.playwright-mcp/
+.DS_Store
+Thumbs.db
+# regenerable wiki search index (rebuild with wiki_reindex)
+.llm-wiki/meta/qmd/
+# this machine's global excludes file ignores docs/ and GLOSSARY.md; re-include
+# them here so new decision records are picked up instead of silently dropped
+!docs/
+!GLOSSARY.md

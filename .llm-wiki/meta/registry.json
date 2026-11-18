@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-11-18T07:13:23.018Z",
+  "pages": {
+    "syntheses/pi-bar-上游实现调研重写基线": {
+      "type": "synthesis",
+      "title": "pi-bar 上游实现调研（重写基线）",
+      "tags": [
+        "pi-bar",
+        "survey",
+        "upstream"
+      ],
+      "created": "2026-11-18",
+      "updated": "2026-11-18"
+    }
+  }
+}

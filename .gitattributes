@@ -1,0 +1,2 @@
+# Windows checkouts otherwise hand you CRLF that the formatter rejects later.
+* text=auto eol=lf

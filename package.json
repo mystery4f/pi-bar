@@ -1,0 +1,50 @@
+{
+  "name": "@mystery4f/pi-bar",
+  "version": "2.0.0-prototype.2",
+  "private": true,
+  "description": "A three-row footer status bar for pi",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "statusline",
+    "footer"
+  ],
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "module": "src/index.ts",
+  "main": "src/index.ts",
+  "files": [
+    "src"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json && tsc -p tsconfig.dev.json",
+    "lint": "biome check .",
+    "fix": "biome check --write .",
+    "test": "vitest run",
+    "verify": "npm run check && npm run lint && npm run test",
+    "preview": "node scripts/preview.ts"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.5.2",
+    "@earendil-works/pi-tui": "^1.5.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.8",
+    "@earendil-works/pi-coding-agent": "^1.5.2",
+    "@earendil-works/pi-tui": "^1.5.2",
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  }
+}
