@@ -95,7 +95,9 @@ export function renderLine(segments: readonly Segment[], width: number, style: L
     return usable.length === 0 ? '' : `${draw(usable)}${RESET}`;
   };
 
-  // Collapse ladder: drop the lowest order first, never truncate.
+  // Collapse ladder: give up the lowest order first, one segment per step, and stop as
+  // soon as the row fits. Segments that share an order therefore leave from the right,
+  // and a row of equally-ranked segments loses its tail instead of everything at once.
   const visible: Segment[] = segments.map((segment) => ({ ...segment }));
   const orders = [...new Set(visible.map((s) => s.collapse).filter((n): n is number => n !== undefined))].sort(
     (a, b) => a - b,
@@ -103,13 +105,21 @@ export function renderLine(segments: readonly Segment[], width: number, style: L
 
   let current = show(visible);
   for (const order of orders) {
-    if (visualWidth(current) <= width) return current;
-    for (const segment of visible) {
-      if (segment.collapse !== order) continue;
-      if (segment.collapsed !== undefined) segment.text = segment.collapsed;
-      else segment.text = '';
+    const targets = visible
+      .map((segment, index) => ({ segment, index }))
+      .filter(({ segment }) => segment.collapse === order)
+      .map(({ index }) => index)
+      .reverse();
+
+    for (const index of targets) {
+      if (visualWidth(current) <= width) return current;
+
+      const segment = visible[index];
+      if (segment === undefined) continue;
+      segment.text = segment.collapsed ?? '';
+      current = show(visible);
     }
-    current = show(visible);
   }
+
   return visualWidth(current) <= width ? current : show(visible);
 }

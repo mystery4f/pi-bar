@@ -52,6 +52,16 @@ describe('renderLine flat', () => {
     expect(line).toContain('id');
     expect(line).not.toContain('a-very-long-model-id');
   });
+
+  it('gives up one segment per step when they share a collapse order', () => {
+    const row = [segment('alpha', 0), segment('bravo', 0), segment('charlie', 0), segment('delta', 0)];
+    const line = stripAnsi(renderLine(row, 30, 'flat'));
+
+    // A shared order drops from the right, and the row stops as soon as it fits.
+    expect(line).toContain('alpha');
+    expect(line).toContain('bravo');
+    expect(line).not.toContain('delta');
+  });
 });
 
 describe('renderLine block', () => {
