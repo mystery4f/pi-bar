@@ -225,7 +225,7 @@ window = 0
 
 [colors]
 # \`#rrggbb\` overrides, e.g. model = "#005b95". Palette names: text, dim, sep,
-# inkText, inkBlue, inkTeal, inkGreen, inkYellow, inkRed, model, thinking, dir,
+# inkText, inkBlue, inkGreen, inkYellow, inkRed, model, thinking, dir,
 # activity, activityFg, gitClean, ok, warn, alert.
 `;
 

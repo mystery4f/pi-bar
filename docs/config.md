@@ -84,9 +84,10 @@ time that falls inside.
 The row keeps the leftmost ones and drops the rest.
 
 `colors.*` — `#rrggbb` overrides for the palette. Valid names are `text`, `dim`, `sep`,
-`inkText`, `inkBlue`, `inkTeal`, `inkGreen`, `inkYellow`, `inkRed`, `model`, `thinking`,
+`inkText`, `inkBlue`, `inkGreen`, `inkYellow`, `inkRed`, `model`, `thinking`,
 `dir`, `activity`, `activityFg`, `gitClean`, `ok`, `warn`, `alert`. A flat row draws text
-in its `ink*` colour, a block row uses the block colour as background.
+in the colour of its own text (`fg`, tuned for the coloured cell it usually sits on), a block
+row uses the block colour as background.
 
 ## When the file is wrong
 

@@ -48,7 +48,6 @@ export const PALETTE = {
   sep: hex('#6c7086'),
   inkText: hex('#cdd6f4'),
   inkBlue: hex('#89b4fa'),
-  inkTeal: hex('#94e2d5'),
   inkGreen: hex('#a6e3a1'),
   inkYellow: hex('#f9e2af'),
   inkRed: hex('#f38ba8'),

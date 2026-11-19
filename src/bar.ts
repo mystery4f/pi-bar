@@ -191,7 +191,6 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
       ...keep(config.segments.activity, {
         text: activityText(),
         fg: PALETTE.activityFg,
-        flatFg: PALETTE.inkTeal,
         bg: PALETTE.activity,
         collapse: 5,
         collapsed: frame(),
@@ -207,7 +206,6 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
       ...keep(config.segments.thinking, {
         text: thinking === '' ? 'think:off' : thinking,
         fg: PALETTE.text,
-        flatFg: PALETTE.inkTeal,
         bg: PALETTE.thinking,
         collapse: 2,
       }),
@@ -244,7 +242,6 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
       ...keep(config.segments.session && sessionName !== '', {
         text: sessionName,
         fg: PALETTE.text,
-        flatFg: PALETTE.inkTeal,
         bg: PALETTE.thinking,
         collapse: 1,
       }),
@@ -308,7 +305,6 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
           ...(repeatsKey ? {} : { prefix: key }),
           prefixFg: PALETTE.dim,
           fg: PALETTE.activityFg,
-          flatFg: PALETTE.inkTeal,
           bg: PALETTE.activity,
           collapse: 1,
         };
