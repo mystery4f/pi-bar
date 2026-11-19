@@ -34,6 +34,7 @@ const ctx: any = {
   cwd: process.cwd(),
   model: { id: 'group/deepseek-flash' },
   thinkingLevel: 'medium',
+  sessionManager: { getSessionName: () => 'status-bar-rewrite' },
   getContextUsage: () => ({ tokens: 118000, contextWindow: 200000, percent: 59 }),
   ui: {
     setWorkingVisible() {},

@@ -23,6 +23,7 @@ export interface SegmentToggles {
   rates: boolean;
   elapsed: boolean;
   cwd: boolean;
+  session: boolean;
   branch: boolean;
   changes: boolean;
   upstream: boolean;
@@ -50,6 +51,7 @@ export const DEFAULT_CONFIG: BarConfig = {
     rates: true,
     elapsed: true,
     cwd: true,
+    session: true,
     branch: true,
     changes: true,
     upstream: true,
@@ -204,6 +206,7 @@ context = true    # context percentage
 rates = true      # in/out tokens per second over the session
 elapsed = true    # how long the current (or last) turn took
 cwd = true        # working directory
+session = true     # pi session name, when the session has one
 branch = true     # git branch
 changes = true    # +added / -removed lines in the working tree
 upstream = true   # ↑2↓1 unpushed / unpulled commits

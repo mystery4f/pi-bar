@@ -27,6 +27,7 @@ export interface Harness {
   render(width: number): string[];
   plain(width: number): PlainRows;
   setBranch(branch: string | null): void;
+  setSessionName(name: string | undefined): void;
   setStatus(key: string, text: string): void;
   /** Warning texts the entry point sent to the user, e.g. a broken config file. */
   notifies(): string[];
@@ -42,6 +43,8 @@ interface HarnessOptions {
   tokens?: number | null;
   contextWindow?: number;
   providers?: number;
+  /** Name pi stores for the session; omit for the unnamed case pi starts with. */
+  sessionName?: string;
   hasUI?: boolean;
   /** Config file the entry point should load; omit for a path that does not exist. */
   configPath?: string;
@@ -64,6 +67,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
   const statuses = new Map<string, string>();
   const notifies: string[] = [];
   let branch: string | null = 'main';
+  let sessionName = options.sessionName;
   let repaints = 0;
   let footer: { render(width: number): string[] } | null = null;
 
@@ -82,6 +86,7 @@ export function createHarness(options: HarnessOptions = {}): Harness {
 
   const ctx = {
     cwd,
+    sessionManager: { getSessionName: () => sessionName },
     hasUI: options.hasUI ?? true,
     model: { id: modelId },
     thinkingLevel,
@@ -125,6 +130,9 @@ export function createHarness(options: HarnessOptions = {}): Harness {
     },
     setBranch(next) {
       branch = next;
+    },
+    setSessionName(name) {
+      sessionName = name;
     },
     setStatus(key, text) {
       statuses.set(key, text);

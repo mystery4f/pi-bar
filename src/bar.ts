@@ -172,6 +172,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     const percent = usage?.percent ?? null;
     const elapsed = elapsedMs();
     const dirName = ctx.cwd.split(/[\\/]/).filter(Boolean).pop() ?? ctx.cwd;
+    const sessionName = ctx.sessionManager.getSessionName() ?? '';
 
     const contextBg =
       percent === null ? PALETTE.dir : percent > 85 ? PALETTE.alert : percent > 60 ? PALETTE.warn : PALETTE.ok;
@@ -235,6 +236,16 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         fg: PALETTE.text,
         flatFg: PALETTE.inkText,
         bg: PALETTE.dir,
+        collapse: 1,
+      }),
+      // The name pi gives a session (`/name` or `--name`) beside the folder it runs in: two
+      // sessions in one checkout are told apart by this segment alone. An unnamed session
+      // has nothing to say, so it costs no space.
+      ...keep(config.segments.session && sessionName !== '', {
+        text: sessionName,
+        fg: PALETTE.text,
+        flatFg: PALETTE.inkTeal,
+        bg: PALETTE.thinking,
         collapse: 1,
       }),
       ...keep(config.segments.branch, {

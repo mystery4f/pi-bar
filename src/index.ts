@@ -45,6 +45,8 @@ export default function piBar(pi: ExtensionAPI): void {
 
   pi.on('model_select', () => bar?.refresh());
   pi.on('thinking_level_select', () => bar?.refresh());
+  // The second row reads the session name at render time, so a rename only needs a repaint.
+  pi.on('session_info_changed', () => bar?.refresh());
 
   pi.on('turn_start', () => bar?.turnStart());
   pi.on('turn_end', (_event, ctx) => {

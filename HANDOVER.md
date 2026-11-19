@@ -14,7 +14,7 @@ A three-row footer bar, replacing pi's built-in footer for the session.
 
 - Row 1 (`working`, seconds): activity spinner plus running tool names, model, thinking
   level, context percentage.
-- Row 2 (`place`, hours): working directory, git branch.
+- Row 2 (`place`, hours): working directory, pi session name, git branch.
 - Row 3 (`reported`, catch-all): every extension status pi pushes, plus `ctx 125K/1M` and
   the provider count when it is above one.
 - A row with no segments is dropped, so an idle session costs two rows.

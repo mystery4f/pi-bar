@@ -137,6 +137,38 @@ it('renders the branch name and no git segment outside a checkout', () => {
   expect(rows[1]).not.toContain('main');
 });
 
+it('puts the session name between the folder and the branch', () => {
+  const bar = install({ sessionName: 'status-bar-rewrite' }).plain(150);
+  const place = bar.rows[1] ?? '';
+
+  expect(place).toContain('status-bar-rewrite');
+  expect(place.indexOf('pi-bar')).toBeLessThan(place.indexOf('status-bar-rewrite'));
+  expect(place.indexOf('status-bar-rewrite')).toBeLessThan(place.indexOf('main'));
+});
+
+it('shows nothing for an unnamed session', () => {
+  const bar = install({ sessionName: undefined }).plain(150);
+  const place = bar.rows[1] ?? '';
+
+  // No placeholder, no empty cell: the row is the folder and the git data it always was.
+  expect(place).toContain('pi-bar');
+  expect(place).not.toContain('undefined');
+  expect(place).not.toContain('session');
+});
+
+it('picks up a rename without waiting for the next turn', () => {
+  const bar = install({ sessionName: 'first-name' });
+  const before = bar.repaints();
+
+  bar.setSessionName('second-name');
+  bar.emit('session_info_changed', { name: 'second-name' });
+
+  expect(bar.repaints()).toBeGreaterThan(before);
+  const place = bar.plain(150).rows[1] ?? '';
+  expect(place).toContain('second-name');
+  expect(place).not.toContain('first-name');
+});
+
 it('shows in and out rates on the working row after a request', () => {
   vi.useFakeTimers();
   const bar = install();
