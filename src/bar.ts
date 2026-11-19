@@ -191,6 +191,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
       ...keep(config.segments.activity, {
         text: activityText(),
         fg: PALETTE.activityFg,
+        flatFg: PALETTE.inkText,
         bg: PALETTE.activity,
         collapse: 5,
         collapsed: frame(),
@@ -305,6 +306,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
           ...(repeatsKey ? {} : { prefix: key }),
           prefixFg: PALETTE.dim,
           fg: PALETTE.activityFg,
+          flatFg: PALETTE.inkText,
           bg: PALETTE.activity,
           collapse: 1,
         };
