@@ -7,6 +7,7 @@
     "syntheses/pi-bar-上游实现调研重写基线"
   ],
   "sources/github-direct-then-proxy-fallback-switch-fast": [],
+  "sources/obs-2026-11-20-pi-bar-dir-cwd-git": [],
   "sources/pi-bar-rate-accounting": [],
   "sources/pi-extension-request-wall-clock": [],
   "sources/pi-footer-api-what-extensions-can-read": [

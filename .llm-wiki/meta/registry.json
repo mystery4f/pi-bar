@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-11-18T13:10:33.188Z",
+  "last_updated": "2026-11-20T12:32:55.616Z",
   "pages": {
     "sources/collapse-ladder-drop-one-segment-per-step": {
       "type": "source",
@@ -28,6 +28,23 @@
       "slug": "github-direct-then-proxy-fallback-switch-fast",
       "created": "2026-11-18",
       "updated": "2026-11-18"
+    },
+    "sources/obs-2026-11-20-pi-bar-dir-cwd-git": {
+      "type": "source",
+      "title": "Observation: pi-bar dir 取会话 cwd，非 git 目录无分支段属正常",
+      "tags": [
+        "pi-bar",
+        "pi-session",
+        "git-branch",
+        "debugging"
+      ],
+      "status": "observation",
+      "slug": "obs-2026-11-20-pi-bar-dir-cwd-git",
+      "relevance": "medium",
+      "observed_at": "2026-11-20T12:32:55.578Z",
+      "source_context": "pi-bar 目录/分支段排查",
+      "created": "2026-11-20",
+      "updated": "2026-11-20"
     },
     "sources/pi-bar-rate-accounting": {
       "type": "source",

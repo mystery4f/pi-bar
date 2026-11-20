@@ -1,5 +1,9 @@
 # Wiki Update Log
 
+## 2026-11-20
+
+- **observe**: {"relevance":"medium","slug":"obs-2026-11-20-pi-bar-dir-cwd-git","title":"pi-bar dir 取会话 cwd，非 git 目录无分支段属正常"}
+
 ## 2026-11-18
 
 - **retro**: {"category":"debug-case","slug":"pi-extension-request-wall-clock","title":"pi 扩展如何给一次请求计时"}

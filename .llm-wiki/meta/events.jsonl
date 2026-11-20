@@ -9,3 +9,4 @@
 {"slug":"pistatusline-speed-metrics","title":"pistatusline 的速率实现口径","category":"reference","timestamp":"2026-11-18T13:10:32.250Z","kind":"retro"}
 {"slug":"token-rate-unit-k-is-kilo","title":"词元速率里的 k 是千，不是 token","category":"convention","timestamp":"2026-11-18T13:10:32.287Z","kind":"retro"}
 {"slug":"pi-extension-request-wall-clock","title":"pi 扩展如何给一次请求计时","category":"debug-case","timestamp":"2026-11-18T13:10:32.324Z","kind":"retro"}
+{"slug":"obs-2026-11-20-pi-bar-dir-cwd-git","title":"pi-bar dir 取会话 cwd，非 git 目录无分支段属正常","relevance":"medium","timestamp":"2026-11-20T12:32:55.596Z","kind":"observe"}

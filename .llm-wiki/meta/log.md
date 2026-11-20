@@ -35,3 +35,6 @@
 ## [2026-11-18T13:10:32.324Z] retro
 - slug: "pi-extension-request-wall-clock", title: "pi 扩展如何给一次请求计时", category: "debug-case"
 
+## [2026-11-20T12:32:55.596Z] observe
+- slug: "obs-2026-11-20-pi-bar-dir-cwd-git", title: "pi-bar dir 取会话 cwd，非 git 目录无分支段属正常", relevance: "medium"
+
