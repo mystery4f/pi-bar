@@ -49,7 +49,7 @@ a slate background, so the family matches without the bottom rows competing. `bl
 | Key | Removes |
 |---|---|
 | `activity` | the spinner and running tool names |
-| `model` | the model name |
+| `model` | the provider and the model, as `provider/id` |
 | `thinking` | the thinking level (`think:off` when unset) |
 | `context` | the context percentage |
 | `rates` | `in 8k t/s out 160 t/s`, the session's token throughput |

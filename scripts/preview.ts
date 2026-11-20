@@ -32,7 +32,7 @@ const emit = (event: string, ...args: unknown[]): void => {
 const ctx: any = {
   hasUI: true,
   cwd: process.cwd(),
-  model: { id: 'group/deepseek-flash' },
+  model: { id: 'deepseek-flash', provider: 'magpie' },
   thinkingLevel: 'medium',
   sessionManager: { getSessionName: () => 'status-bar-rewrite' },
   getContextUsage: () => ({ tokens: 118000, contextWindow: 200000, percent: 59 }),

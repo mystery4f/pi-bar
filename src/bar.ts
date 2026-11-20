@@ -166,7 +166,10 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
 
   const buildLines = (ctx: ExtensionContext, footerData: ReadonlyFooterDataProvider): Segment[][] => {
     const branch = footerData.getGitBranch();
-    const model = ctx.model?.id ?? 'no model';
+    const modelId = ctx.model?.id ?? 'no model';
+    const provider = ctx.model?.provider ?? '';
+    // The provider is what tells two sessions apart when the same id is served twice.
+    const model = provider === '' || modelId.startsWith(`${provider}/`) ? modelId : `${provider}/${modelId}`;
     const thinking = ctx.thinkingLevel ?? '';
     const usage = ctx.getContextUsage();
     const percent = usage?.percent ?? null;
@@ -202,7 +205,7 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         flatFg: PALETTE.inkBlue,
         bg: PALETTE.model,
         collapse: 3,
-        collapsed: model.split('/').pop() ?? model,
+        collapsed: modelId.split('/').pop() ?? modelId,
       }),
       ...keep(config.segments.thinking, {
         text: thinking === '' ? 'think:off' : thinking,
