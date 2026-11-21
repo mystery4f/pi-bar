@@ -104,7 +104,6 @@ window = 1
 
   // The first request began before the one-second window, so only the second one is averaged.
   const working = harness.plain(150).rows[0] ?? '';
-  expect(working).toContain('in 20k t/s');
   expect(working).toContain('out 200 t/s');
   vi.useRealTimers();
 });

@@ -174,7 +174,8 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
     const usage = ctx.getContextUsage();
     const percent = usage?.percent ?? null;
     const elapsed = elapsedMs();
-    const dirName = ctx.cwd.split(/[\\/]/).filter(Boolean).pop() ?? ctx.cwd;
+    // The last two levels: `mystery4f/pi-bar` says where you are; the checkout above it is noise.
+    const dirName = ctx.cwd.split(/[\\/]/).filter(Boolean).slice(-2).join('/') || ctx.cwd;
     const sessionName = ctx.sessionManager.getSessionName() ?? '';
 
     const contextBg =
@@ -227,7 +228,6 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
         bg: PALETTE.dir,
         collapse: 3,
       }),
-      ...(rate?.input === undefined ? [] : [rateSegment('in', rate.input)]),
       ...(rate?.output === undefined ? [] : [rateSegment('out', rate.output)]),
     ];
 

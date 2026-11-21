@@ -26,7 +26,8 @@ it('renders the three rows in order, working row first', () => {
   // spacer row here shows up as a blank strip under the bar.
   expect(bar.rows).toHaveLength(3);
   expect(bar.rows[0]).toContain('group/deepseek-flash');
-  expect(bar.rows[1]).toContain('pi-bar');
+  // The checkout above the last two levels is dropped: `/work/pi-bar` shows as `work/pi-bar`.
+  expect(bar.rows[1]).toContain('work/pi-bar');
   expect(bar.rows[1]).toContain('main');
   expect(bar.rows[2]).toContain('ctx');
 });
@@ -169,7 +170,7 @@ it('picks up a rename without waiting for the next turn', () => {
   expect(place).not.toContain('first-name');
 });
 
-it('shows in and out rates on the working row after a request', () => {
+it('shows the out rate on the working row after a request', () => {
   vi.useFakeTimers();
   const bar = install();
   const message = { role: 'assistant' };
@@ -180,14 +181,13 @@ it('shows in and out rates on the working row after a request', () => {
   vi.advanceTimersByTime(2000);
   bar.emit('message_end', { message: { ...message, usage: { input: 20_000, output: 400 } } });
 
-  // 20K prompt and 400 output tokens over the 2.5s the request took: one window, two halves.
+  // 400 output tokens over the 2.5s the request took.
   const working = bar.plain(150).rows[0] ?? '';
-  expect(working).toContain('in 8k t/s');
   expect(working).toContain('out 160 t/s');
   vi.useRealTimers();
 });
 
-it('times the whole wait, so a request that never streamed still reports both halves', () => {
+it('times the whole wait, so a request that never streamed still reports its rate', () => {
   vi.useFakeTimers();
   const bar = install();
   const message = { role: 'assistant' };
@@ -198,7 +198,6 @@ it('times the whole wait, so a request that never streamed still reports both ha
   bar.emit('turn_end');
 
   const working = bar.plain(150).rows[0] ?? '';
-  expect(working).toContain('in 20k t/s');
   expect(working).toContain('out 400 t/s');
   vi.useRealTimers();
 });

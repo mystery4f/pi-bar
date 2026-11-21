@@ -52,9 +52,9 @@ a slate background, so the family matches without the bottom rows competing. `bl
 | `model` | the provider and the model, as `provider/id` |
 | `thinking` | the thinking level (`think:off` when unset) |
 | `context` | the context percentage |
-| `rates` | `in 8k t/s out 160 t/s`, the session's token throughput |
+| `rates` | `out 160 t/s`, the session's output-token throughput |
 | `elapsed` | `12s`, how long the current turn has run (`1m05s` past a minute); the last turn's time stays on screen after it ends |
-| `cwd` | the working directory on the second row |
+| `cwd` | the working directory's last two levels, `mystery4f/pi-bar`, on the second row |
 | `session` | the pi session name (`/name` or `--name`) beside the working directory; an unnamed session shows nothing |
 | `branch` | the git branch on the second row |
 | `changes` | `Edits • 12 files • +98 -7`, the working tree beside the branch: a label, the changed-file count, then the line counts as plain coloured text (green added, red removed) instead of filled cells |
@@ -66,10 +66,10 @@ a slate background, so the family matches without the bottom rows competing. `bl
 A row with no segments left is dropped, so turning off every segment of a row costs
 nothing.
 
-The rates are one measurement, not two: prompt tokens and output tokens are both divided by the
-wall clock the requests took, from the end of the previous message to the end of the answer, and
-the totals accumulate over the session. That keeps `in` and `out` comparable between providers
-and across a session that grows; cached prompt tokens are not counted as fresh work. A request
+The rate is the output tokens divided by the wall clock the requests took, from the end of the
+previous message to the end of the answer, and the totals accumulate over the session. That keeps
+`out` comparable between providers and across a session that grows; cached prompt tokens are not
+counted as fresh work. A request
 with no usage (an abort) is left out entirely, and a total under 50ms reports nothing rather than
 dividing by a tick. `PI_BAR_DEBUG_RATES=1` prints the prompt tokens, the output tokens and the
 duration of each finished request to stderr.
