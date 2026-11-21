@@ -46,17 +46,22 @@ export const parseStatusCount = (text: string): number =>
 /** A failing git (no repository, no upstream, no binary, no permission) reads as no output. */
 const runGit = (cwd: string, args: string[]): Promise<string> =>
   new Promise((resolve) => {
-    execFile(
-      'git',
-      args,
-      {
-        cwd,
-        timeout: TIMEOUT_MS,
-        env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' },
-        windowsHide: true,
-      },
-      (error, stdout) => resolve(error === null ? stdout : ''),
-    );
+    try {
+      execFile(
+        'git',
+        args,
+        {
+          cwd,
+          timeout: TIMEOUT_MS,
+          env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' },
+          windowsHide: true,
+        },
+        (error, stdout) => resolve(error === null ? stdout : ''),
+      );
+    } catch {
+      // Windows can refuse the spawn itself with EPERM, which never reaches the callback.
+      resolve('');
+    }
   });
 
 export const readChangeCounts = async (cwd: string): Promise<ChangeCounts> => {

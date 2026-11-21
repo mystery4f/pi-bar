@@ -384,20 +384,24 @@ export function createBar(tui: TUI, config: BarConfig): Bar {
       requestRender();
     },
     updateChanges(cwd) {
-      void Promise.all([readChangeCounts(cwd), readUpstreamCounts(cwd)]).then(([nextChanges, nextUpstream]) => {
-        const moved =
-          nextChanges.files !== changes.files ||
-          nextChanges.insertions !== changes.insertions ||
-          nextChanges.deletions !== changes.deletions ||
-          nextUpstream.ahead !== upstream.ahead ||
-          nextUpstream.behind !== upstream.behind;
+      void Promise.all([readChangeCounts(cwd), readUpstreamCounts(cwd)])
+        .then(([nextChanges, nextUpstream]) => {
+          const moved =
+            nextChanges.files !== changes.files ||
+            nextChanges.insertions !== changes.insertions ||
+            nextChanges.deletions !== changes.deletions ||
+            nextUpstream.ahead !== upstream.ahead ||
+            nextUpstream.behind !== upstream.behind;
 
-        if (!moved) return;
+          if (!moved) return;
 
-        changes = nextChanges;
-        upstream = nextUpstream;
-        requestRender();
-      });
+          changes = nextChanges;
+          upstream = nextUpstream;
+          requestRender();
+        })
+        .catch(() => {
+          // A footer row never takes the host down: a failed read keeps the last figures.
+        });
     },
     dispose() {
       stopSpinner();
